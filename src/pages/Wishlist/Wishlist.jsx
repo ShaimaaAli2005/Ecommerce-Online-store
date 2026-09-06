@@ -60,7 +60,6 @@ const Wishlist = () => {
             to="/login"
             className="text-sm text-[#60708F] hover:text-[#17233C] transition-colors"
           >
-            تسجيل الدخول
           </Link>
         </div>
 

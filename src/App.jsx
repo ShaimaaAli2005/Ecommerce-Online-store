@@ -1,28 +1,30 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import Navbar from './Components/Navbar';
-import Footer from './Components/Footer';
 import Login from './pages/Login/Login';
 import ForgotPassword from './pages/ForgotPassword/ForgotPassword';
 import Wishlist from './pages/Wishlist/Wishlist';
+import ProtectedRoute from './Components/ProtectedRoute';
+import MainLayout from './Components/MainLayout';
 
 function App() {
   return (
     <Router>
-      <div className="flex flex-col min-h-screen">
-        <Navbar />
+      <Routes>
+        {/* 1. المسارات العامة المستقلة (بدون Navbar أو Footer) */}
+        <Route path="/login" element={<Login />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
 
-        <main className="flex-grow">
-          <Routes>
-            <Route path="/" element={<Navigate to="/login" replace />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/forgot-password" element={<ForgotPassword />} />
+        {/* 2. المسارات المحمية داخل تصميم المتجر الرئيسي */}
+        <Route element={<ProtectedRoute />}>
+          <Route element={<MainLayout />}>
+            <Route path="/" element={<Navigate to="/wishlist" replace />} />
             <Route path="/wishlist" element={<Wishlist />} />
-            <Route path="*" element={<Navigate to="/login" replace />} />
-          </Routes>
-        </main>
+            {/* أضف هنا أي مسارات أخرى للمتجر أو الدشبورد لاحقاً */}
+          </Route>
+        </Route>
 
-        <Footer />
-      </div>
+        {/* 3. توجيه افتراضي لأي مسار غير معروف */}
+        <Route path="*" element={<Navigate to="/login" replace />} />
+      </Routes>
     </Router>
   );
 }

@@ -45,7 +45,7 @@ const Login = () => {
     return newErrors;
   };
 
-  // 4. معالجة إرسال النموذج (Submit)
+  // 4. معالجة إرسال النموذج (Submit) والتوجيه
   const handleSubmit = (e) => {
     e.preventDefault();
     const validationErrors = validate();
@@ -57,12 +57,17 @@ const Login = () => {
 
     setIsLoading(true);
 
-    // محاكاة الاتصال بالـ API لحين تفعيل خدمات الربط (Services)
+    // محاكاة استجابة السيرفر وتخزين التوكن
     setTimeout(() => {
       console.log('بيانات تسجيل الدخول:', formData);
+
+      // حفظ التوكن في localStorage لتفعيل الـ Protected Routes
+      localStorage.setItem('token', 'sample-auth-token-12345');
+
       setIsLoading(false);
-      // التوجيه للصفحة الرئيسية بعد نجاح التسجيل
-      navigate('/');
+
+      // التوجيه تلقائياً إلى الصفحة المطلوبة (مثل قائمة الرغبات أو الرئيسية)
+      navigate('/wishlist');
     }, 1000);
   };
 
