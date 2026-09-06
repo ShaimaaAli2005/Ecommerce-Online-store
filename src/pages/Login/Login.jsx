@@ -1,8 +1,12 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 
 const Login = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // تحديد الوجهة: العودة لنفس الصفحة التي طلبها المستخدم (مثل checkout أو my-orders) أو الذهاب للرئيسية افتراضياً
+  const destination = location.state?.from?.pathname || '/wishlist';
 
   // 1. إدارة حالة الحقول والأخطاء وحالة التحميل
   const [formData, setFormData] = useState({
@@ -27,7 +31,7 @@ const Login = () => {
     }
   };
 
-  // 3. التحقق البسيط من صحة المدخلات (Client-side Validation)
+  // 3. التحقق من صحة المدخلات (Client-side Validation)
   const validate = () => {
     const newErrors = {};
     if (!formData.email) {
@@ -45,7 +49,7 @@ const Login = () => {
     return newErrors;
   };
 
-  // 4. معالجة إرسال النموذج (Submit) والتوجيه
+  // 4. معالجة إرسال النموذج (Submit) والتوجيه الذكي
   const handleSubmit = (e) => {
     e.preventDefault();
     const validationErrors = validate();
@@ -59,21 +63,19 @@ const Login = () => {
 
     // محاكاة استجابة السيرفر وتخزين التوكن
     setTimeout(() => {
-      console.log('بيانات تسجيل الدخول:', formData);
-
       // حفظ التوكن في localStorage لتفعيل الـ Protected Routes
       localStorage.setItem('token', 'sample-auth-token-12345');
 
       setIsLoading(false);
 
-      // التوجيه تلقائياً إلى الصفحة المطلوبة (مثل قائمة الرغبات أو الرئيسية)
-      navigate('/wishlist');
+      // توجيه تلقائي لنفس العملية أو الصفحة التي حاول الدخول إليها مباشرة
+      navigate(destination, { replace: true });
     }, 1000);
   };
 
   return (
     <div className="min-h-screen bg-[#F7F5F0] flex items-center justify-center p-4">
-      {/* كارت النموذج متوافق مع معايير LUMA */}
+      {/* كارت النموذج متوافق مع معايير تصميم LUMA */}
       <div dir="rtl" className="w-full max-w-md bg-[#FFFFFF] rounded-[16px] border border-[#E5E7EB] shadow-sm p-6 sm:p-8">
         
         {/* رأس النموذج */}
@@ -82,7 +84,7 @@ const Login = () => {
             LUMA
           </h1>
           <p className="text-sm text-[#7B8190] mt-2 font-['Inter']">
-            أهلاً بك مجدداً! سجل دخولك لمتابعة التسوق
+            أهلاً بك مجدداً! سجل دخولك لمتابعة طلباتك وتسوقك
           </p>
         </div>
 

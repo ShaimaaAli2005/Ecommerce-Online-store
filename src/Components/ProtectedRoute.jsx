@@ -1,15 +1,15 @@
-import { Navigate, Outlet } from 'react-router-dom';
+import React from 'react';
+import { Navigate, Outlet, useLocation } from 'react-router-dom';
 
 const ProtectedRoute = () => {
-  // فحص هل المستخدم مسجل دخول (وجود Token)
   const token = localStorage.getItem('token');
+  const location = useLocation();
 
-  // إذا لم يوجد توكن، يتم تحويله لصفحة الدخول
   if (!token) {
-    return <Navigate to="/login" replace />;
+    // إرسال المسار المطلوب في الـ state للعودة له فوراً بعد الدخول
+    return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // إذا كان مسجلاً، يتم عرض الصفحة المطلوبة
   return <Outlet />;
 };
 
