@@ -1,3 +1,26 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --primary: #17233C;
+    --secondary: #60708F;
+    --accent: #E89A5B;
+    --background: #F7F5F0;
+    --white: #FFFFFF;
+    --text: #1F2937;
+    --muted: #7B8190;
+    --success: #4F8A70;
+    --error: #C95C5C;
+    --border: #E5E7EB;
+  }
+
+  body {
+    background-color: var(--background);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Poppins', sans-serif;
+  }
+}
