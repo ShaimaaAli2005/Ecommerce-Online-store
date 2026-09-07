@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
@@ -22,6 +22,15 @@ const Login = () => {
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
+  // مرجع للاحتفاظ بالـ Timers ومنع الـ Memory Leaks
+  const timerRef = useRef(null);
+
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, []);
+
   const toggleLanguage = () => {
     const nextLang = currentLang === 'en' ? 'ar' : 'en';
     i18n.changeLanguage(nextLang);
@@ -43,9 +52,9 @@ const Login = () => {
 
   const validate = () => {
     const newErrors = {};
-    if (!formData.email) {
+    if (!formData.email.trim()) {
       newErrors.email = t('errors.emailRequired');
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+    } else if (!/\S+@\S+\.\S+/.test(formData.email.trim())) {
       newErrors.email = t('errors.emailInvalid');
     }
 
@@ -69,7 +78,7 @@ const Login = () => {
 
     setIsLoading(true);
 
-    setTimeout(() => {
+    timerRef.current = setTimeout(() => {
       localStorage.setItem('token', 'sample-auth-token-12345');
       setIsLoading(false);
       navigate(destination, { replace: true });
@@ -79,7 +88,7 @@ const Login = () => {
   // محاكاة تسجيل الدخول السريع عبر Google
   const handleGoogleLogin = () => {
     setIsGoogleLoading(true);
-    setTimeout(() => {
+    timerRef.current = setTimeout(() => {
       localStorage.setItem('token', 'sample-google-oauth-token-999');
       setIsGoogleLoading(false);
       navigate(destination, { replace: true });
@@ -105,44 +114,49 @@ const Login = () => {
 
       <div className="w-full max-w-5xl bg-white md:rounded-3xl shadow-[0_20px_60px_-15px_rgba(23,35,60,0.08)] border border-[#EBE8E1] overflow-hidden flex flex-col md:flex-row min-h-[640px]">
         
-        {/* الجانب الأيسر البصري */}
-        <div className="relative md:w-5/12 bg-[#17233C] text-white p-8 md:p-12 flex flex-col justify-between overflow-hidden">
-          <div className="absolute inset-0 z-0">
+        {/* الجانب البصري الفاخر - Login */}
+        <div className="relative md:w-5/12 bg-[#0B132B] text-white p-8 md:p-12 flex flex-col justify-between overflow-hidden">
+          {/* خلفية الصورة مع معالجة سينمائية راقية */}
+          <div className="absolute inset-0 z-0 overflow-hidden">
             <img
-              src="https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=1200&q=80"
-              alt="LUMA Interior Atmosphere"
-              className="w-full h-full object-cover opacity-35 scale-105 transition-transform duration-1000 ease-out hover:scale-100"
+              src="https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=1600&q=85"
+              alt="LUMA Luxury Interior"
+              className="w-full h-full object-cover opacity-75 contrast-[1.08] brightness-[0.85] scale-100 hover:scale-105 transition-transform duration-700 ease-out"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-[#17233C] via-[#17233C]/80 to-transparent" />
+            {/* تدرج لوني لحماية وضوح النصوص */}
+            <div className="absolute inset-0 bg-gradient-to-t from-[#0B132B] via-[#0B132B]/40 to-black/30" />
           </div>
 
+          {/* الشعار */}
           <div className="relative z-10">
             <Link to="/" className="inline-block">
-              <span className="text-3xl font-extrabold tracking-widest font-['Poppins'] text-white">
+              <span className="text-3xl font-extrabold tracking-widest font-['Poppins'] text-white drop-shadow-md">
                 {t('brand')}
               </span>
             </Link>
-            <div className="h-0.5 w-8 bg-[#E89A5B] mt-2 rounded-full"></div>
+            <div className="h-1 w-10 bg-[#E89A5B] mt-2 rounded-full shadow-sm"></div>
           </div>
 
-          <div className="relative z-10 my-8">
-            <span className="text-[11px] font-semibold tracking-widest text-[#E89A5B] uppercase block mb-2">
+          {/* الاقتباس الترويجي */}
+          <div className="relative z-10 my-8 backdrop-blur-[2px] bg-black/15 p-4 rounded-2xl border border-white/10">
+            <span className="text-[11px] font-bold tracking-widest text-[#E89A5B] uppercase block mb-2 drop-shadow-sm">
               {t('login.showcase.tagline')}
             </span>
-            <p className="text-xl sm:text-2xl font-light leading-snug font-['Poppins'] text-[#F7F5F0]">
+            <p className="text-xl sm:text-2xl font-normal leading-snug font-['Poppins'] text-white drop-shadow-md">
               {t('login.showcase.quote')}
             </p>
           </div>
 
-          <div className="relative z-10 backdrop-blur-md bg-white/10 border border-white/15 p-3.5 rounded-2xl flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-[#E89A5B]/20 text-[#E89A5B] flex items-center justify-center font-bold text-sm">
+          {/* البطاقة الزجاجية السفلية */}
+          <div className="relative z-10 backdrop-blur-md bg-white/15 border border-white/25 p-4 rounded-2xl flex items-center gap-3.5 shadow-xl">
+            <div className="w-10 h-10 rounded-xl bg-[#E89A5B] text-white flex items-center justify-center font-bold text-base shadow-sm">
               ★
             </div>
             <div>
-              <p className="text-xs font-semibold text-white">
+              <p className="text-xs font-bold text-white tracking-wide">
                 {t('login.showcase.badgeTitle')}
               </p>
-              <p className="text-[10px] text-gray-300">
+              <p className="text-[11px] text-slate-100 font-light">
                 {t('login.showcase.badgeDesc')}
               </p>
             </div>
@@ -250,6 +264,7 @@ const Login = () => {
                   />
                   <button
                     type="button"
+                    aria-label={showPassword ? "Hide password" : "Show password"}
                     onClick={() => setShowPassword(!showPassword)}
                     className={`absolute top-1/2 -translate-y-1/2 ${
                       isRtl ? 'left-3' : 'right-3'

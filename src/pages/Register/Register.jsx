@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
@@ -22,6 +22,15 @@ const Register = () => {
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  // مرجع للاحتفاظ بالـ Timers ومنع تسريب الذاكرة (Memory Leak)
+  const timerRef = useRef(null);
+
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, []);
 
   const toggleLanguage = () => {
     const nextLang = currentLang === 'en' ? 'ar' : 'en';
@@ -48,9 +57,9 @@ const Register = () => {
       newErrors.fullName = t('errors.fullNameRequired');
     }
 
-    if (!formData.email) {
+    if (!formData.email.trim()) {
       newErrors.email = t('errors.emailRequired');
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+    } else if (!/\S+@\S+\.\S+/.test(formData.email.trim())) {
       newErrors.email = t('errors.emailInvalid');
     }
 
@@ -82,7 +91,7 @@ const Register = () => {
 
     setIsLoading(true);
 
-    setTimeout(() => {
+    timerRef.current = setTimeout(() => {
       localStorage.setItem('token', 'sample-registered-token-999');
       setIsLoading(false);
       navigate('/wishlist', { replace: true });
@@ -91,7 +100,7 @@ const Register = () => {
 
   const handleGoogleSignup = () => {
     setIsGoogleLoading(true);
-    setTimeout(() => {
+    timerRef.current = setTimeout(() => {
       localStorage.setItem('token', 'sample-google-oauth-token-999');
       setIsGoogleLoading(false);
       navigate('/wishlist', { replace: true });
@@ -103,6 +112,7 @@ const Register = () => {
       dir={isRtl ? 'rtl' : 'ltr'}
       className="min-h-screen w-full bg-[#F7F5F0] flex flex-col justify-center items-center p-0 md:p-6 lg:p-10 font-['Inter'] relative select-none"
     >
+      {/* زر تبديل اللغة */}
       <div className="fixed top-5 right-6 z-50">
         <button
           type="button"
@@ -116,44 +126,45 @@ const Register = () => {
 
       <div className="w-full max-w-5xl bg-white md:rounded-3xl shadow-[0_20px_60px_-15px_rgba(23,35,60,0.08)] border border-[#EBE8E1] overflow-hidden flex flex-col md:flex-row min-h-[680px]">
         
-        {/* الجانب الأيسر البصري */}
-        <div className="relative md:w-5/12 bg-[#17233C] text-white p-8 md:p-12 flex flex-col justify-between overflow-hidden">
-          <div className="absolute inset-0 z-0">
+        {/* الجانب البصري الفاخر - Register */}
+        <div className="relative md:w-5/12 bg-[#0B132B] text-white p-8 md:p-12 flex flex-col justify-between overflow-hidden">
+          <div className="absolute inset-0 z-0 overflow-hidden">
             <img
-              src="https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?auto=format&fit=crop&w=1200&q=80"
-              alt="LUMA Living Aesthetics"
-              className="w-full h-full object-cover opacity-35 scale-105 transition-transform duration-1000 ease-out hover:scale-100"
+              src="https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?auto=format&fit=crop&w=1600&q=85"
+              alt="LUMA Architectural Living"
+              className="w-full h-full object-cover opacity-75 contrast-[1.08] brightness-[0.85] scale-100 hover:scale-105 transition-transform duration-700 ease-out"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-[#17233C] via-[#17233C]/80 to-transparent" />
+            {/* تدرج لوني لحماية وضوح النصوص مع إبراز الصورة */}
+            <div className="absolute inset-0 bg-gradient-to-t from-[#0B132B] via-[#0B132B]/40 to-black/30" />
           </div>
 
           <div className="relative z-10">
             <Link to="/" className="inline-block">
-              <span className="text-3xl font-extrabold tracking-widest font-['Poppins'] text-white">
+              <span className="text-3xl font-extrabold tracking-widest font-['Poppins'] text-white drop-shadow-md">
                 {t('brand')}
               </span>
             </Link>
-            <div className="h-0.5 w-8 bg-[#E89A5B] mt-2 rounded-full"></div>
+            <div className="h-1 w-10 bg-[#E89A5B] mt-2 rounded-full shadow-sm"></div>
           </div>
 
-          <div className="relative z-10 my-8">
-            <span className="text-[11px] font-semibold tracking-widest text-[#E89A5B] uppercase block mb-2">
+          <div className="relative z-10 my-8 backdrop-blur-[2px] bg-black/15 p-4 rounded-2xl border border-white/10">
+            <span className="text-[11px] font-bold tracking-widest text-[#E89A5B] uppercase block mb-2 drop-shadow-sm">
               {t('register.showcase.tagline')}
             </span>
-            <p className="text-xl sm:text-2xl font-light leading-snug font-['Poppins'] text-[#F7F5F0]">
+            <p className="text-xl sm:text-2xl font-normal leading-snug font-['Poppins'] text-white drop-shadow-md">
               {t('register.showcase.quote')}
             </p>
           </div>
 
-          <div className="relative z-10 backdrop-blur-md bg-white/10 border border-white/15 p-3.5 rounded-2xl flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-[#E89A5B]/20 text-[#E89A5B] flex items-center justify-center font-bold text-sm">
+          <div className="relative z-10 backdrop-blur-md bg-white/15 border border-white/25 p-4 rounded-2xl flex items-center gap-3.5 shadow-xl">
+            <div className="w-10 h-10 rounded-xl bg-[#E89A5B] text-white flex items-center justify-center font-bold text-base shadow-sm">
               ✦
             </div>
             <div>
-              <p className="text-xs font-semibold text-white">
+              <p className="text-xs font-bold text-white tracking-wide">
                 {t('register.showcase.badgeTitle')}
               </p>
-              <p className="text-[10px] text-gray-300">
+              <p className="text-[11px] text-slate-100 font-light">
                 {t('register.showcase.badgeDesc')}
               </p>
             </div>
@@ -172,7 +183,7 @@ const Register = () => {
               </p>
             </div>
 
-            {/* زر Google */}
+            {/* زر تسجيل الحساب بواسطة Google */}
             <button
               type="button"
               onClick={handleGoogleSignup}
@@ -195,7 +206,7 @@ const Register = () => {
               <span>{t('register.googleBtn')}</span>
             </button>
 
-            {/* خط فاصل */}
+            {/* خط فاصل أنيق */}
             <div className="relative my-4 text-center">
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-[#EBE8E1]"></div>
@@ -254,7 +265,7 @@ const Register = () => {
                 )}
               </div>
 
-              {/* كلمات المرور */}
+              {/* كلمتا المرور جنباً إلى جنب */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <div>
                   <label className="block text-xs font-semibold uppercase tracking-wider text-[#1F2937] mb-1">
@@ -277,6 +288,7 @@ const Register = () => {
                     />
                     <button
                       type="button"
+                      aria-label={showPassword ? "Hide password" : "Show password"}
                       onClick={() => setShowPassword(!showPassword)}
                       className={`absolute top-1/2 -translate-y-1/2 ${
                         isRtl ? 'left-2.5' : 'right-2.5'
@@ -311,6 +323,7 @@ const Register = () => {
                     />
                     <button
                       type="button"
+                      aria-label={showConfirmPassword ? "Hide confirm password" : "Show confirm password"}
                       onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                       className={`absolute top-1/2 -translate-y-1/2 ${
                         isRtl ? 'left-2.5' : 'right-2.5'
@@ -344,7 +357,7 @@ const Register = () => {
                 )}
               </div>
 
-              {/* زر الإرسال الرئيسي */}
+              {/* زر إنشاء الحساب */}
               <button
                 type="submit"
                 disabled={isLoading || isGoogleLoading}
