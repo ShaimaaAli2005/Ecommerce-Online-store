@@ -5,6 +5,8 @@ import ForgotPassword from './pages/ForgotPassword/ForgotPassword';
 import Wishlist from './pages/Wishlist/Wishlist';
 import ProtectedRoute from './Components/ProtectedRoute';
 import MainLayout from './Components/MainLayout';
+import { Toaster } from 'react-hot-toast';
+import { AuthProvider } from './context/AuthContext';
 
 const CheckoutPlaceholder = () => (
   <div className="p-12 text-center font-['Inter']">
@@ -22,28 +24,33 @@ const OrdersPlaceholder = () => (
 
 function App() {
   return (
-    <Router>
-      <Routes>
-        {/* شاشات المصادقة المنفصلة (بدون Navbar أو Footer) */}
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/forgot-password" element={<ForgotPassword />} />
+    <AuthProvider>
+      {/* حاوية الإشعارات لتظهر رسائل النجاح والخطأ في أي مكان بالتطبيق */}
+      <Toaster position="top-center" reverseOrder={false} />
 
-        {/* المتجر العام مع Navbar و Footer */}
-        <Route element={<MainLayout />}>
-          <Route path="/" element={<Navigate to="/login" replace />} />
-          <Route path="/wishlist" element={<Wishlist />} />
+      <Router>
+        <Routes>
+          {/* شاشات المصادقة المنفصلة (بدون Navbar أو Footer) */}
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
 
-          {/* العمليات المحمية التي تتطلب توكن */}
-          <Route element={<ProtectedRoute />}>
-            <Route path="/checkout" element={<CheckoutPlaceholder />} />
-            <Route path="/my-orders" element={<OrdersPlaceholder />} />
+          {/* المتجر العام مع Navbar و Footer */}
+          <Route element={<MainLayout />}>
+            <Route path="/" element={<Navigate to="/login" replace />} />
+            <Route path="/wishlist" element={<Wishlist />} />
+
+            {/* العمليات المحمية التي تتطلب توكن */}
+            <Route element={<ProtectedRoute />}>
+              <Route path="/checkout" element={<CheckoutPlaceholder />} />
+              <Route path="/my-orders" element={<OrdersPlaceholder />} />
+            </Route>
           </Route>
-        </Route>
 
-        <Route path="*" element={<Navigate to="/login" replace />} />
-      </Routes>
-    </Router>
+          <Route path="*" element={<Navigate to="/login" replace />} />
+        </Routes>
+      </Router>
+    </AuthProvider>
   );
 }
 

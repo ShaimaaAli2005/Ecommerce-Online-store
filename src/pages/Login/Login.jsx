@@ -1,11 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import toast from 'react-hot-toast';
+import { useAuth } from '../../context/AuthContext';
 
 const Login = () => {
   const { t, i18n } = useTranslation('auth');
   const navigate = useNavigate();
   const location = useLocation();
+  const { loginUser } = useAuth(); // الاستدعاء الصحيح للـ Hook داخل الكومبوننت
 
   const currentLang = i18n.language || 'en';
   const isRtl = currentLang === 'ar';
@@ -67,7 +70,7 @@ const Login = () => {
     return newErrors;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const validationErrors = validate();
 
@@ -78,11 +81,24 @@ const Login = () => {
 
     setIsLoading(true);
 
-    timerRef.current = setTimeout(() => {
-      localStorage.setItem('token', 'sample-auth-token-12345');
-      setIsLoading(false);
+    try {
+      // إرسال البيانات للـ Backend عبر الـ Context
+      await loginUser({
+        email: formData.email.trim(),
+        password: formData.password,
+      });
+
+      toast.success(isRtl ? 'تم تسجيل الدخول بنجاح!' : 'Login successful!');
       navigate(destination, { replace: true });
-    }, 1000);
+    } catch (err) {
+      // قراءة رسالة الخطأ القادمة من السيرفر وعرضها
+      const errorMsg =
+        err.response?.data?.message ||
+        (isRtl ? 'فشل تسجيل الدخول، تأكد من صحة البيانات' : 'Unable to login, please check your credentials');
+      toast.error(errorMsg);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   // محاكاة تسجيل الدخول السريع عبر Google
