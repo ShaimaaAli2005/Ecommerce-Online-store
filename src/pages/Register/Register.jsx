@@ -1,26 +1,27 @@
 import React, { useState } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
-const Login = () => {
+const Register = () => {
   const { t, i18n } = useTranslation('auth');
   const navigate = useNavigate();
-  const location = useLocation();
 
   const currentLang = i18n.language || 'en';
   const isRtl = currentLang === 'ar';
-  const destination = location.state?.from?.pathname || '/wishlist';
 
   const [formData, setFormData] = useState({
+    fullName: '',
     email: '',
     password: '',
-    rememberMe: false,
+    confirmPassword: '',
+    agreeTerms: false,
   });
 
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const toggleLanguage = () => {
     const nextLang = currentLang === 'en' ? 'ar' : 'en';
@@ -43,6 +44,10 @@ const Login = () => {
 
   const validate = () => {
     const newErrors = {};
+    if (!formData.fullName.trim()) {
+      newErrors.fullName = t('errors.fullNameRequired');
+    }
+
     if (!formData.email) {
       newErrors.email = t('errors.emailRequired');
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
@@ -53,6 +58,14 @@ const Login = () => {
       newErrors.password = t('errors.passwordRequired');
     } else if (formData.password.length < 6) {
       newErrors.password = t('errors.passwordMin');
+    }
+
+    if (formData.password !== formData.confirmPassword) {
+      newErrors.confirmPassword = t('errors.passwordMismatch');
+    }
+
+    if (!formData.agreeTerms) {
+      newErrors.agreeTerms = t('errors.termsRequired');
     }
 
     return newErrors;
@@ -70,19 +83,18 @@ const Login = () => {
     setIsLoading(true);
 
     setTimeout(() => {
-      localStorage.setItem('token', 'sample-auth-token-12345');
+      localStorage.setItem('token', 'sample-registered-token-999');
       setIsLoading(false);
-      navigate(destination, { replace: true });
+      navigate('/wishlist', { replace: true });
     }, 1000);
   };
 
-  // محاكاة تسجيل الدخول السريع عبر Google
-  const handleGoogleLogin = () => {
+  const handleGoogleSignup = () => {
     setIsGoogleLoading(true);
     setTimeout(() => {
       localStorage.setItem('token', 'sample-google-oauth-token-999');
       setIsGoogleLoading(false);
-      navigate(destination, { replace: true });
+      navigate('/wishlist', { replace: true });
     }, 800);
   };
 
@@ -91,7 +103,6 @@ const Login = () => {
       dir={isRtl ? 'rtl' : 'ltr'}
       className="min-h-screen w-full bg-[#F7F5F0] flex flex-col justify-center items-center p-0 md:p-6 lg:p-10 font-['Inter'] relative select-none"
     >
-      {/* زر تبديل اللغة في أعلى اليمين */}
       <div className="fixed top-5 right-6 z-50">
         <button
           type="button"
@@ -103,14 +114,14 @@ const Login = () => {
         </button>
       </div>
 
-      <div className="w-full max-w-5xl bg-white md:rounded-3xl shadow-[0_20px_60px_-15px_rgba(23,35,60,0.08)] border border-[#EBE8E1] overflow-hidden flex flex-col md:flex-row min-h-[640px]">
+      <div className="w-full max-w-5xl bg-white md:rounded-3xl shadow-[0_20px_60px_-15px_rgba(23,35,60,0.08)] border border-[#EBE8E1] overflow-hidden flex flex-col md:flex-row min-h-[680px]">
         
         {/* الجانب الأيسر البصري */}
         <div className="relative md:w-5/12 bg-[#17233C] text-white p-8 md:p-12 flex flex-col justify-between overflow-hidden">
           <div className="absolute inset-0 z-0">
             <img
-              src="https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=1200&q=80"
-              alt="LUMA Interior Atmosphere"
+              src="https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?auto=format&fit=crop&w=1200&q=80"
+              alt="LUMA Living Aesthetics"
               className="w-full h-full object-cover opacity-35 scale-105 transition-transform duration-1000 ease-out hover:scale-100"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-[#17233C] via-[#17233C]/80 to-transparent" />
@@ -127,23 +138,23 @@ const Login = () => {
 
           <div className="relative z-10 my-8">
             <span className="text-[11px] font-semibold tracking-widest text-[#E89A5B] uppercase block mb-2">
-              {t('login.showcase.tagline')}
+              {t('register.showcase.tagline')}
             </span>
             <p className="text-xl sm:text-2xl font-light leading-snug font-['Poppins'] text-[#F7F5F0]">
-              {t('login.showcase.quote')}
+              {t('register.showcase.quote')}
             </p>
           </div>
 
           <div className="relative z-10 backdrop-blur-md bg-white/10 border border-white/15 p-3.5 rounded-2xl flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl bg-[#E89A5B]/20 text-[#E89A5B] flex items-center justify-center font-bold text-sm">
-              ★
+              ✦
             </div>
             <div>
               <p className="text-xs font-semibold text-white">
-                {t('login.showcase.badgeTitle')}
+                {t('register.showcase.badgeTitle')}
               </p>
               <p className="text-[10px] text-gray-300">
-                {t('login.showcase.badgeDesc')}
+                {t('register.showcase.badgeDesc')}
               </p>
             </div>
           </div>
@@ -152,20 +163,19 @@ const Login = () => {
         {/* الجانب الأيمن: النموذج مع زر Google */}
         <div className="md:w-7/12 p-8 sm:p-12 lg:p-14 flex flex-col justify-center bg-white">
           <div className="max-w-md w-full mx-auto">
-            
-            <div className="mb-6">
+            <div className="mb-5">
               <h2 className="text-2xl sm:text-3xl font-bold text-[#17233C] tracking-tight font-['Poppins']">
-                {t('login.title')}
+                {t('register.title')}
               </h2>
-              <p className="text-sm text-[#7B8190] mt-1.5 leading-relaxed">
-                {t('login.subtitle')}
+              <p className="text-sm text-[#7B8190] mt-1 leading-relaxed">
+                {t('register.subtitle')}
               </p>
             </div>
 
-            {/* زر تسجيل الدخول بواسطة Google */}
+            {/* زر Google */}
             <button
               type="button"
-              onClick={handleGoogleLogin}
+              onClick={handleGoogleSignup}
               disabled={isGoogleLoading || isLoading}
               className="w-full bg-white hover:bg-[#F9FAFB] border border-[#E5E7EB] hover:border-[#D1D5DB] text-[#1F2937] py-2.5 px-4 rounded-xl text-xs sm:text-sm font-medium transition-all duration-200 shadow-xs flex items-center justify-center gap-3 cursor-pointer disabled:opacity-60"
             >
@@ -182,31 +192,55 @@ const Login = () => {
                   <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/>
                 </svg>
               )}
-              <span>{t('login.googleBtn')}</span>
+              <span>{t('register.googleBtn')}</span>
             </button>
 
-            {/* خط فاصل أنيق */}
-            <div className="relative my-5 text-center">
+            {/* خط فاصل */}
+            <div className="relative my-4 text-center">
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-[#EBE8E1]"></div>
               </div>
               <span className="relative bg-white px-3 text-xs text-[#9CA3AF]">
-                {t('login.showcase.orDivider')}
+                {t('register.showcase.orDivider')}
               </span>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {/* حقل البريد الإلكتروني */}
+            <form onSubmit={handleSubmit} className="space-y-3.5">
+              {/* الاسم الكامل */}
               <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-[#1F2937] mb-1.5">
-                  {t('login.emailLabel')}
+                <label className="block text-xs font-semibold uppercase tracking-wider text-[#1F2937] mb-1">
+                  {t('register.fullNameLabel')}
+                </label>
+                <input
+                  type="text"
+                  name="fullName"
+                  value={formData.fullName}
+                  onChange={handleChange}
+                  placeholder={t('register.fullNamePlaceholder')}
+                  className={`w-full px-4 py-2.5 rounded-xl border text-sm outline-none transition-all duration-200 bg-[#FAFAFA] focus:bg-white ${
+                    errors.fullName
+                      ? 'border-[#C95C5C] focus:ring-2 focus:ring-[#C95C5C]/20'
+                      : 'border-[#E5E7EB] focus:border-[#17233C] focus:ring-4 focus:ring-[#17233C]/5'
+                  }`}
+                />
+                {errors.fullName && (
+                  <span className="text-xs text-[#C95C5C] mt-1 flex items-center gap-1">
+                    <span>⚠</span> {errors.fullName}
+                  </span>
+                )}
+              </div>
+
+              {/* البريد الإلكتروني */}
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-wider text-[#1F2937] mb-1">
+                  {t('register.emailLabel')}
                 </label>
                 <input
                   type="email"
                   name="email"
                   value={formData.email}
                   onChange={handleChange}
-                  placeholder={t('login.emailPlaceholder')}
+                  placeholder={t('register.emailPlaceholder')}
                   className={`w-full px-4 py-2.5 rounded-xl border text-sm outline-none transition-all duration-200 bg-[#FAFAFA] focus:bg-white ${
                     errors.email
                       ? 'border-[#C95C5C] focus:ring-2 focus:ring-[#C95C5C]/20'
@@ -220,72 +254,101 @@ const Login = () => {
                 )}
               </div>
 
-              {/* حقل كلمة المرور */}
-              <div>
-                <div className="flex items-center justify-between mb-1.5">
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-[#1F2937]">
-                    {t('login.passwordLabel')}
+              {/* كلمات المرور */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-[#1F2937] mb-1">
+                    {t('register.passwordLabel')}
                   </label>
-                  <Link
-                    to="/forgot-password"
-                    className="text-xs font-medium text-[#7B8190] hover:text-[#E89A5B] transition-colors"
-                  >
-                    {t('login.forgotPassword')}
-                  </Link>
+                  <div className="relative">
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      name="password"
+                      value={formData.password}
+                      onChange={handleChange}
+                      placeholder="••••••••"
+                      className={`w-full px-3.5 py-2.5 rounded-xl border text-sm outline-none transition-all bg-[#FAFAFA] focus:bg-white ${
+                        isRtl ? 'pl-9' : 'pr-9'
+                      } ${
+                        errors.password
+                          ? 'border-[#C95C5C] focus:ring-2 focus:ring-[#C95C5C]/20'
+                          : 'border-[#E5E7EB] focus:border-[#17233C]'
+                      }`}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className={`absolute top-1/2 -translate-y-1/2 ${
+                        isRtl ? 'left-2.5' : 'right-2.5'
+                      } text-xs text-[#7B8190] hover:text-[#17233C] cursor-pointer`}
+                    >
+                      {showPassword ? '👁️' : '👁️‍🗨️'}
+                    </button>
+                  </div>
+                  {errors.password && (
+                    <span className="text-xs text-[#C95C5C] mt-1 block">{errors.password}</span>
+                  )}
                 </div>
-                <div className="relative">
-                  <input
-                    type={showPassword ? 'text' : 'password'}
-                    name="password"
-                    value={formData.password}
-                    onChange={handleChange}
-                    placeholder={t('login.passwordPlaceholder')}
-                    className={`w-full px-4 py-2.5 rounded-xl border text-sm outline-none transition-all duration-200 bg-[#FAFAFA] focus:bg-white ${
-                      isRtl ? 'pl-11' : 'pr-11'
-                    } ${
-                      errors.password
-                        ? 'border-[#C95C5C] focus:ring-2 focus:ring-[#C95C5C]/20'
-                        : 'border-[#E5E7EB] focus:border-[#17233C] focus:ring-4 focus:ring-[#17233C]/5'
-                    }`}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className={`absolute top-1/2 -translate-y-1/2 ${
-                      isRtl ? 'left-3' : 'right-3'
-                    } text-xs text-[#7B8190] hover:text-[#17233C] p-1 cursor-pointer transition-colors`}
-                  >
-                    {showPassword ? '👁️' : '👁️‍🗨️'}
-                  </button>
+
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-[#1F2937] mb-1">
+                    {t('register.confirmPasswordLabel')}
+                  </label>
+                  <div className="relative">
+                    <input
+                      type={showConfirmPassword ? 'text' : 'password'}
+                      name="confirmPassword"
+                      value={formData.confirmPassword}
+                      onChange={handleChange}
+                      placeholder="••••••••"
+                      className={`w-full px-3.5 py-2.5 rounded-xl border text-sm outline-none transition-all bg-[#FAFAFA] focus:bg-white ${
+                        isRtl ? 'pl-9' : 'pr-9'
+                      } ${
+                        errors.confirmPassword
+                          ? 'border-[#C95C5C] focus:ring-2 focus:ring-[#C95C5C]/20'
+                          : 'border-[#E5E7EB] focus:border-[#17233C]'
+                      }`}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      className={`absolute top-1/2 -translate-y-1/2 ${
+                        isRtl ? 'left-2.5' : 'right-2.5'
+                      } text-xs text-[#7B8190] hover:text-[#17233C] cursor-pointer`}
+                    >
+                      {showConfirmPassword ? '👁️' : '👁️‍🗨️'}
+                    </button>
+                  </div>
+                  {errors.confirmPassword && (
+                    <span className="text-xs text-[#C95C5C] mt-1 block">{errors.confirmPassword}</span>
+                  )}
                 </div>
-                {errors.password && (
-                  <span className="text-xs text-[#C95C5C] mt-1 flex items-center gap-1">
-                    <span>⚠</span> {errors.password}
-                  </span>
-                )}
               </div>
 
-              {/* خيار تذكرني */}
-              <div className="flex items-center">
+              {/* الشروط والأحكام */}
+              <div className="pt-0.5">
                 <label className="flex items-center gap-2.5 text-xs text-[#7B8190] cursor-pointer group">
                   <input
                     type="checkbox"
-                    name="rememberMe"
-                    checked={formData.rememberMe}
+                    name="agreeTerms"
+                    checked={formData.agreeTerms}
                     onChange={handleChange}
                     className="w-4 h-4 rounded text-[#17233C] border-gray-300 focus:ring-0 cursor-pointer accent-[#17233C]"
                   />
                   <span className="group-hover:text-[#17233C] transition-colors">
-                    {t('login.rememberMe')}
+                    {t('register.termsAgree')}
                   </span>
                 </label>
+                {errors.agreeTerms && (
+                  <span className="text-xs text-[#C95C5C] mt-1 block">{errors.agreeTerms}</span>
+                )}
               </div>
 
-              {/* زر الدخول الرئيسي */}
+              {/* زر الإرسال الرئيسي */}
               <button
                 type="submit"
                 disabled={isLoading || isGoogleLoading}
-                className="w-full bg-[#17233C] hover:bg-[#E89A5B] text-white py-3 px-4 rounded-xl font-semibold text-sm tracking-wide transition-all duration-300 shadow-md hover:shadow-lg disabled:opacity-75 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-2 group"
+                className="w-full bg-[#17233C] hover:bg-[#E89A5B] text-white py-3 px-4 rounded-xl font-semibold text-sm tracking-wide transition-all duration-300 shadow-md hover:shadow-lg disabled:opacity-75 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-2 group mt-2"
               >
                 {isLoading ? (
                   <>
@@ -293,11 +356,11 @@ const Login = () => {
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
-                    <span>{t('login.submitting')}</span>
+                    <span>{t('register.submitting')}</span>
                   </>
                 ) : (
                   <>
-                    <span>{t('login.submitBtn')}</span>
+                    <span>{t('register.submitBtn')}</span>
                     <span className={`transition-transform duration-200 ${isRtl ? 'group-hover:-translate-x-1' : 'group-hover:translate-x-1'}`}>
                       {isRtl ? '←' : '→'}
                     </span>
@@ -306,13 +369,13 @@ const Login = () => {
               </button>
             </form>
 
-            <div className="mt-6 text-center text-xs text-[#7B8190]">
-              {t('login.noAccountPrompt')}{' '}
+            <div className="mt-5 text-center text-xs text-[#7B8190]">
+              {t('register.hasAccountPrompt')}{' '}
               <Link
-                to="/register"
+                to="/login"
                 className="text-[#17233C] font-bold hover:text-[#E89A5B] transition-colors underline decoration-1 underline-offset-4"
               >
-                {t('login.registerAction')}
+                {t('register.loginAction')}
               </Link>
             </div>
           </div>
@@ -323,4 +386,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default Register;
