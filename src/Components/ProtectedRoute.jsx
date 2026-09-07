@@ -6,7 +6,7 @@ const ProtectedRoute = () => {
   const location = useLocation();
 
   if (!token) {
-    // إرسال المسار المطلوب في الـ state للعودة له فوراً بعد الدخول
+    // توجيه الزائر لصفحة الدخول مع تذكر المسار الذي كان يريده
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 

@@ -1,0 +1,15 @@
+{
+  "pageTitle": "قائمة رغباتي",
+  "itemsCount_one": "منتج واحد محفوظ",
+  "itemsCount_other": "{{count}} منتجات محفوظة",
+  "emptyTitle": "قائمة الرغبات فارغة",
+  "emptySubtitle": "استكشف مجموعتنا المميزة واحفظ المنتجات التي تنال إعجابك للرجوع إليها لاحقاً.",
+  "startShopping": "ابدأ التسوق الآن",
+  "inStock": "متوفر في المخزون",
+  "outOfStock": "غير متوفر",
+  "addToCart": "إضافة إلى السلة",
+  "addedToCart": "تمت الإضافة للسلة!",
+  "removeTooltip": "حذف من القائمة",
+  "clearAll": "مسح كل المحفوظات",
+  "currency": "دولار"
+}
