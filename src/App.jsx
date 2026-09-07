@@ -5,6 +5,7 @@ import ForgotPassword from './pages/ForgotPassword/ForgotPassword';
 import Wishlist from './pages/Wishlist/Wishlist';
 import ProtectedRoute from './Components/ProtectedRoute';
 import MainLayout from './Components/MainLayout';
+import ProductDetails from './pages/ProductDetails/ProductDetails';
 
 const CheckoutPlaceholder = () => (
   <div className="p-12 text-center font-['Inter']">
@@ -33,6 +34,7 @@ function App() {
         <Route element={<MainLayout />}>
           <Route path="/" element={<Navigate to="/login" replace />} />
           <Route path="/wishlist" element={<Wishlist />} />
+          <Route path="/products/:id" element={<ProductDetails />} />
 
           {/* العمليات المحمية التي تتطلب توكن */}
           <Route element={<ProtectedRoute />}>

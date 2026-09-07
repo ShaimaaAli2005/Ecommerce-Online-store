@@ -1,3 +1,5 @@
+import { Link } from "react-router-dom";
+
 const ProductCard = ({
   product,
   onAddToCart,
@@ -25,11 +27,13 @@ const ProductCard = ({
     <article className="group overflow-hidden rounded-2xl border border-[#E5E7EB] bg-white transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
       {/* Product Image */}
       <div className="relative aspect-square overflow-hidden bg-[#F7F5F0]">
-        <img
+       <Link to={`/products/${product._id}`}>
+       <img
           src={productImage}
           alt={productName}
           className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-        />
+       />
+       </Link>
 
         {/* Discount */}
         {discount > 0 && (
@@ -57,9 +61,12 @@ const ProductCard = ({
           </p>
         )}
 
-        <h3 className="line-clamp-2 min-h-[48px] font-['Poppins'] text-base font-semibold text-[#17233C]">
-          {productName}
-        </h3>
+    <Link
+       to={`/products/${product._id}`}
+       className="line-clamp-2 min-h-[48px] font-['Poppins'] text-base font-semibold text-[#17233C]"
+    >
+       {productName}
+    </Link>
 
         {/* Rating */}
         {rating !== undefined && (
