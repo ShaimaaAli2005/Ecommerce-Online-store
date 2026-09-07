@@ -1,0 +1,15 @@
+{
+  "pageTitle": "My Wishlist",
+  "itemsCount_one": "{{count}} item saved",
+  "itemsCount_other": "{{count}} items saved",
+  "emptyTitle": "Your wishlist is empty",
+  "emptySubtitle": "Explore our curated collection and save items you love for later.",
+  "startShopping": "Start Shopping",
+  "inStock": "In Stock",
+  "outOfStock": "Out of Stock",
+  "addToCart": "Add to Cart",
+  "addedToCart": "Added to Cart!",
+  "removeTooltip": "Remove item",
+  "clearAll": "Clear Wishlist",
+  "currency": "USD"
+}
