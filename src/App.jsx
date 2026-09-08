@@ -35,17 +35,18 @@ function App() {
           <Route path="/register" element={<Register />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
 
-          {/* المتجر العام مع Navbar و Footer */}
-          <Route element={<MainLayout />}>
-            <Route path="/" element={<Navigate to="/login" replace />} />
-            <Route path="/wishlist" element={<Wishlist />} />
-
-            {/* العمليات المحمية التي تتطلب توكن */}
-            <Route element={<ProtectedRoute />}>
-              <Route path="/checkout" element={<CheckoutPlaceholder />} />
-              <Route path="/my-orders" element={<OrdersPlaceholder />} />
-            </Route>
-          </Route>
+         {/* شاشات المتجر العام مع Navbar و Footer */}
+<Route element={<MainLayout />}>
+  
+ 
+  <Route path="/wishlist" element={<Wishlist />} />
+  
+  {/* العمليات المحمية التي تتطلب توكن */}
+  <Route element={<ProtectedRoute />}>
+    <Route path="/checkout" element={<CheckoutPlaceholder />} />
+    <Route path="/my-orders" element={<OrdersPlaceholder />} />
+  </Route>
+</Route>
 
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
