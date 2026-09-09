@@ -1,28 +1,35 @@
+import { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './pages/Login/Login';
 import Register from './pages/Register/Register';
 import ForgotPassword from './pages/ForgotPassword/ForgotPassword';
 import Wishlist from './pages/Wishlist/Wishlist';
+import Profile from './pages/Profile/Profile'; 
 import ProtectedRoute from './Components/ProtectedRoute';
 import MainLayout from './Components/MainLayout';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from './context/AuthContext';
-
-const CheckoutPlaceholder = () => (
-  <div className="p-12 text-center font-['Inter']">
-    <h2 className="text-2xl font-bold text-[#17233C] font-['Poppins']">Checkout & Shipping</h2>
-    <p className="text-[#7B8190] mt-2 text-sm">Protected route: Requires authenticated customer identity.</p>
-  </div>
-);
+import Cart from './pages/Cart';
+import Checkout from './pages/Checkout';
 
 const OrdersPlaceholder = () => (
   <div className="p-12 text-center font-['Inter']">
-    <h2 className="text-2xl font-bold text-[#17233C] font-['Poppins']">My Orders</h2>
+    <h2 className="text-2xl font-bold text-[#17233C] dark:text-white font-['Poppins']">My Orders</h2>
     <p className="text-[#7B8190] mt-2 text-sm">Protected route: Sign in required to view order history.</p>
   </div>
 );
 
 function App() {
+  // تم نقل الـ useEffect هنا للداخل بشكل صحيح تماماً
+  useEffect(() => {
+    const theme = localStorage.getItem('theme');
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, []);
+
   return (
     <AuthProvider>
       {/* حاوية الإشعارات لتظهر رسائل النجاح والخطأ في أي مكان بالتطبيق */}
@@ -35,18 +42,18 @@ function App() {
           <Route path="/register" element={<Register />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
 
-         {/* شاشات المتجر العام مع Navbar و Footer */}
-<Route element={<MainLayout />}>
-  
- 
-  <Route path="/wishlist" element={<Wishlist />} />
-  
-  {/* العمليات المحمية التي تتطلب توكن */}
-  <Route element={<ProtectedRoute />}>
-    <Route path="/checkout" element={<CheckoutPlaceholder />} />
-    <Route path="/my-orders" element={<OrdersPlaceholder />} />
-  </Route>
-</Route>
+          {/* شاشات المتجر العام مع Navbar و Footer */}
+          <Route element={<MainLayout />}>
+            <Route path="/wishlist" element={<Wishlist />} />
+            <Route path="/cart" element={<Cart />} />
+            
+            {/* العمليات المحمية التي تتطلب توكن (وتتضمن صفحة الـ Profile بالنافبار) */}
+            <Route element={<ProtectedRoute />}>
+              <Route path="/checkout" element={<Checkout />} />
+              <Route path="/my-orders" element={<OrdersPlaceholder />} />
+              <Route path="/profile" element={<Profile />} />
+            </Route>
+          </Route>
 
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
