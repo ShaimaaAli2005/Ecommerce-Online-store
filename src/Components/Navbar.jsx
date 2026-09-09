@@ -1,44 +1,57 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { useAuth } from '../context/AuthContext'; // استدعاء الـ AuthContext الجديد
+import { useAuth } from '../context/AuthContext';
+import { useCart } from '../context/CartContext'; 
 
-const Navbar = ({ wishlistCount = 0, cartCount = 0 }) => {
+const Navbar = ({ wishlistCount = 0 }) => {
   const { t } = useTranslation('auth');
   const navigate = useNavigate();
+  const { cartCount } = useCart();
   
-  // استدعاء الحالة والدالة بالأسماء الصحيحة من الـ AuthContext
-  const { user, logoutUser } = useAuth();
-  
-  // التحقق هل المستخدم مسجل دخول أم لا بناءً على الـ user والـ token
+  const { user } = useAuth();
   const isLoggedIn = !!user || !!localStorage.getItem('token');
 
   const [isOpen, setIsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('Home');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isDarkMode, setIsDarkMode] = useState(false);
 
-  // قراءة الدارك مود من localStorage
-  const [isDarkMode, setIsDarkMode] = useState(() => {
-    return localStorage.getItem('theme') === 'dark';
-  });
-
-  // دالة الـ Logout باستخدام الـ AuthContext
-  const handleLogout = async () => {
-    await logoutUser(); // بتنفذ الخروج من الباك اند وتمسح التوكن محلياً
-    navigate('/Wishlist', { replace: true }); // توجيه مباشر لصفحة اللوجن
-  };
-
-  // تطبيق كلاس الدارك مود
+  // التأكد من وضع الداركات عند فتح الصفحة
   useEffect(() => {
-    if (isDarkMode) {
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'dark' || document.documentElement.classList.contains('dark')) {
+      setIsDarkMode(true);
+      document.documentElement.classList.add('dark');
+    } else {
+      setIsDarkMode(false);
+      document.documentElement.classList.remove('dark');
+    }
+  }, []);
+
+  const handleToggleDarkMode = () => {
+    const newMode = !isDarkMode;
+    setIsDarkMode(newMode);
+    
+    if (newMode) {
       document.documentElement.classList.add('dark');
       localStorage.setItem('theme', 'dark');
+      // تطبيق اللون الأسود الفخم يدوياً على أي عنصر خلفيته بيضاء للتأكيد الفوري
+      document.querySelectorAll('.bg-white').forEach(el => {
+        el.style.backgroundColor = '#1e293b';
+        el.style.color = '#ffffff';
+      });
     } else {
       document.documentElement.classList.remove('dark');
       localStorage.setItem('theme', 'light');
+      // رجوع الألوان لطبيعتها
+      document.querySelectorAll('.bg-white').forEach(el => {
+        el.style.backgroundColor = '';
+        el.style.color = '';
+      });
     }
-  }, [isDarkMode]);
+  };
 
   const navLinks = [
     { name: 'Home', href: '/' },
@@ -78,7 +91,7 @@ const Navbar = ({ wishlistCount = 0, cartCount = 0 }) => {
           ))}
         </div>
 
-        {/* Icons & Dynamic Login/Logout Button */}
+        {/* Icons & Actions */}
         <div className="hidden md:flex items-center gap-5 text-[#7B8190] dark:text-gray-300">
           
           {/* Search Box */}
@@ -112,11 +125,11 @@ const Navbar = ({ wishlistCount = 0, cartCount = 0 }) => {
 
           {/* Theme Toggle Icon */}
           <button 
-            onClick={() => setIsDarkMode(!isDarkMode)}
-            className="hover:text-[#E89A5B] transition-colors" 
+            onClick={handleToggleDarkMode}
+            className="hover:text-[#E89A5B] transition-colors p-1.5 cursor-pointer text-base text-[#7B8190] dark:text-gray-300"
             title="Toggle Theme"
           >
-            <i className={`fa-regular ${isDarkMode ? 'fa-sun text-yellow-400' : 'fa-moon'} text-base`}></i>
+            <i className={`fa-solid ${isDarkMode ? 'fa-moon text-[#E89A5B]' : 'fa-sun'}`}></i>
           </button>
 
           {/* Wishlist Icon */}
@@ -135,7 +148,7 @@ const Navbar = ({ wishlistCount = 0, cartCount = 0 }) => {
 
           {/* Cart Icon */}
           <div 
-            onClick={() => navigate('/checkout')}
+            onClick={() => navigate('/cart')}
             className="relative cursor-pointer hover:text-[#E89A5B] transition-colors" 
             title="Cart"
           >
@@ -147,15 +160,15 @@ const Navbar = ({ wishlistCount = 0, cartCount = 0 }) => {
             )}
           </div>
 
-          {/* Login / Logout Button */}
+          {/* Admin Profile Link OR Login Button */}
           {isLoggedIn ? (
-            <button
-              onClick={handleLogout}
-              className="flex items-center gap-2 border border-red-500 text-red-500 hover:bg-red-500 hover:text-white transition-all px-3.5 py-1.5 rounded-[10px] text-xs font-semibold tracking-wider ml-2 cursor-pointer"
+            <Link 
+              to="/profile"
+              className="flex items-center gap-2 border border-[#17233C] dark:border-white text-[#17233C] dark:text-white hover:bg-[#17233C] dark:hover:bg-white hover:text-[#FFFFFF] dark:hover:text-[#17233C] transition-all px-3.5 py-1.5 rounded-[10px] text-xs font-semibold tracking-wider ml-2"
             >
-              <i className="fa-solid fa-right-from-bracket text-sm"></i>
-              <span>{t('logout')}</span>
-            </button>
+              <i className="fa-regular fa-user text-sm"></i>
+              <span>Admin</span>
+            </Link>
           ) : (
             <Link 
               to="/login"
@@ -196,16 +209,14 @@ const Navbar = ({ wishlistCount = 0, cartCount = 0 }) => {
           ))}
           <div className="pt-2 border-t border-[#E5E7EB] dark:border-gray-800 px-4">
             {isLoggedIn ? (
-              <button
-                onClick={() => {
-                  setIsOpen(false);
-                  handleLogout();
-                }}
-                className="w-full flex items-center justify-center gap-2 border border-red-500 text-red-500 py-2 rounded-[10px] text-xs font-semibold hover:bg-red-500 hover:text-white transition-all cursor-pointer"
+              <Link
+                to="/profile"
+                onClick={() => setIsOpen(false)}
+                className="w-full flex items-center justify-center gap-2 border border-[#17233C] dark:border-white text-[#17233C] dark:text-white py-2 rounded-[10px] text-xs font-semibold hover:bg-[#17233C] dark:hover:bg-white hover:text-[#FFFFFF] dark:hover:text-[#17233C] transition-all"
               >
-                <i className="fa-solid fa-right-from-bracket text-sm"></i>
-                <span>{t('logout')}</span>
-              </button>
+                <i className="fa-regular fa-user text-sm"></i>
+                <span>Admin</span>
+              </Link>
             ) : (
               <Link 
                 to="/login"
