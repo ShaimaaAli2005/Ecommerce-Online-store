@@ -7,8 +7,10 @@ import Wishlist from './pages/Wishlist/Wishlist';
 import Profile from './pages/Profile/Profile'; 
 import ProtectedRoute from './Components/ProtectedRoute';
 import MainLayout from './Components/MainLayout';
+import ProductDetails from './pages/ProductDetails/ProductDetails';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from './context/AuthContext';
+ feature/navbar-and-routes
 import Cart from './pages/Cart';
 import Checkout from './pages/Checkout';
 
@@ -16,6 +18,28 @@ const OrdersPlaceholder = () => (
   <div className="p-12 text-center font-['Inter']">
     <h2 className="text-2xl font-bold text-[#17233C] dark:text-white font-['Poppins']">My Orders</h2>
     <p className="text-[#7B8190] mt-2 text-sm">Protected route: Sign in required to view order history.</p>
+
+
+const CheckoutPlaceholder = () => (
+  <div className="p-12 text-center font-['Inter']">
+    <h2 className="text-2xl font-bold text-[#17233C] font-['Poppins']">
+      Checkout & Shipping
+    </h2>
+    <p className="text-[#7B8190] mt-2 text-sm">
+      Protected route: Requires authenticated customer identity.
+    </p>
+  </div>
+);
+
+const OrdersPlaceholder = () => (
+  <div className="p-12 text-center font-['Inter']">
+    <h2 className="text-2xl font-bold text-[#17233C] font-['Poppins']">
+      My Orders
+    </h2>
+    <p className="text-[#7B8190] mt-2 text-sm">
+      Protected route: Sign in required to view order history.
+    </p>
+ develop
   </div>
 );
 
@@ -32,16 +56,16 @@ function App() {
 
   return (
     <AuthProvider>
-      {/* حاوية الإشعارات لتظهر رسائل النجاح والخطأ في أي مكان بالتطبيق */}
       <Toaster position="top-center" reverseOrder={false} />
 
       <Router>
         <Routes>
-          {/* شاشات المصادقة المنفصلة (بدون Navbar أو Footer) */}
+          {/* Authentication pages */}
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
 
+ feature/navbar-and-routes
           {/* شاشات المتجر العام مع Navbar و Footer */}
           <Route element={<MainLayout />}>
             <Route path="/wishlist" element={<Wishlist />} />
@@ -52,6 +76,17 @@ function App() {
               <Route path="/checkout" element={<Checkout />} />
               <Route path="/my-orders" element={<OrdersPlaceholder />} />
               <Route path="/profile" element={<Profile />} />
+          {/* Store pages with Navbar and Footer */}
+          <Route element={<MainLayout />}>
+            <Route path="/" element={<Navigate to="/login" replace />} />
+            <Route path="/wishlist" element={<Wishlist />} />
+            <Route path="/products/:id" element={<ProductDetails />} />
+
+            {/* Protected routes */}
+            <Route element={<ProtectedRoute />}>
+              <Route path="/checkout" element={<CheckoutPlaceholder />} />
+              <Route path="/my-orders" element={<OrdersPlaceholder />} />
+ develop
             </Route>
           </Route>
 
