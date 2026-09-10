@@ -10,7 +10,6 @@ import MainLayout from './Components/MainLayout';
 import ProductDetails from './pages/ProductDetails/ProductDetails';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from './context/AuthContext';
- feature/navbar-and-routes
 import Cart from './pages/Cart';
 import Checkout from './pages/Checkout';
 
@@ -18,7 +17,8 @@ const OrdersPlaceholder = () => (
   <div className="p-12 text-center font-['Inter']">
     <h2 className="text-2xl font-bold text-[#17233C] dark:text-white font-['Poppins']">My Orders</h2>
     <p className="text-[#7B8190] mt-2 text-sm">Protected route: Sign in required to view order history.</p>
-
+  </div>
+);
 
 const CheckoutPlaceholder = () => (
   <div className="p-12 text-center font-['Inter']">
@@ -31,20 +31,7 @@ const CheckoutPlaceholder = () => (
   </div>
 );
 
-const OrdersPlaceholder = () => (
-  <div className="p-12 text-center font-['Inter']">
-    <h2 className="text-2xl font-bold text-[#17233C] font-['Poppins']">
-      My Orders
-    </h2>
-    <p className="text-[#7B8190] mt-2 text-sm">
-      Protected route: Sign in required to view order history.
-    </p>
- develop
-  </div>
-);
-
 function App() {
-  // تم نقل الـ useEffect هنا للداخل بشكل صحيح تماماً
   useEffect(() => {
     const theme = localStorage.getItem('theme');
     if (theme === 'dark') {
@@ -65,28 +52,18 @@ function App() {
           <Route path="/register" element={<Register />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
 
- feature/navbar-and-routes
-          {/* شاشات المتجر العام مع Navbar و Footer */}
-          <Route element={<MainLayout />}>
-            <Route path="/wishlist" element={<Wishlist />} />
-            <Route path="/cart" element={<Cart />} />
-            
-            {/* العمليات المحمية التي تتطلب توكن (وتتضمن صفحة الـ Profile بالنافبار) */}
-            <Route element={<ProtectedRoute />}>
-              <Route path="/checkout" element={<Checkout />} />
-              <Route path="/my-orders" element={<OrdersPlaceholder />} />
-              <Route path="/profile" element={<Profile />} />
           {/* Store pages with Navbar and Footer */}
           <Route element={<MainLayout />}>
             <Route path="/" element={<Navigate to="/login" replace />} />
             <Route path="/wishlist" element={<Wishlist />} />
+            <Route path="/cart" element={<Cart />} />
             <Route path="/products/:id" element={<ProductDetails />} />
+            <Route path="/profile" element={<Profile />} />
 
             {/* Protected routes */}
             <Route element={<ProtectedRoute />}>
-              <Route path="/checkout" element={<CheckoutPlaceholder />} />
+              <Route path="/checkout" element={<Checkout />} />
               <Route path="/my-orders" element={<OrdersPlaceholder />} />
- develop
             </Route>
           </Route>
 
