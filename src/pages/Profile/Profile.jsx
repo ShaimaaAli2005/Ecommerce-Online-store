@@ -31,7 +31,7 @@ const Profile = () => {
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-[#E5E7EB] dark:border-gray-700 p-6 space-y-6">
           
           <div className="flex items-start justify-between">
-            {/* Left side: Avatar + Name, Email, and Blue Customer text */}
+            {/* Left side: Avatar + Name, Email, and Customer text */}
             <div className="flex items-center gap-4">
               <div className="w-16 h-16 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center text-gray-500 dark:text-gray-300 text-2xl shrink-0">
                 <i className="fa-solid fa-user"></i>
@@ -43,7 +43,7 @@ const Profile = () => {
                 <p className="text-xs text-[#7B8190] dark:text-gray-400">
                   {user?.email || 'customer@koda.com'}
                 </p>
-                <p className="text-xs font-semibold text-blue-600 dark:text-blue-400">
+                <p className="text-xs font-semibold text-[#E89A5B]">
                   Customer
                 </p>
               </div>
@@ -63,7 +63,9 @@ const Profile = () => {
               <i className="fa-solid fa-phone"></i>
               <span>Not set</span>
             </div>
-            <button class="inline-flex items-center justify-center font-medium rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed border border-blue-600 text-blue-600 hover:bg-blue-50 dark:hover:bg-gray-700 px-4 py-2 text-sm mt-4">Edit Profile</button>
+            <button className="bg-[#17233C] hover:bg-[#E89A5B] text-white text-xs font-semibold px-5 py-2.5 rounded-xl transition-all duration-300 shadow-sm cursor-pointer mt-4">
+              Edit Profile
+            </button>
            
           </div>
         </div>
@@ -71,7 +73,7 @@ const Profile = () => {
         {/* 2. Addresses Section */}
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-[#E5E7EB] dark:border-gray-700 p-6 space-y-4">
           <div className="flex items-center gap-2 border-b border-[#E5E7EB] dark:border-gray-700 pb-3">
-            <i className="fa-solid fa-location-dot text-blue-600 dark:text-blue-400"></i>
+            <i className="fa-solid fa-location-dot text-[#E89A5B]"></i>
             <h2 className="text-sm font-bold text-[#17233C] dark:text-white">Addresses</h2>
           </div>
           
@@ -81,32 +83,32 @@ const Profile = () => {
             <input 
               type="text" 
               placeholder="Country" 
-              className="bg-transparent border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 text-xs outline-none focus:border-blue-600 dark:text-white"
+              className="bg-transparent border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 text-xs outline-none focus:border-[#17233C] dark:focus:border-[#E89A5B] dark:text-white"
             />
             <input 
               type="text" 
               placeholder="City" 
-              className="bg-transparent border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 text-xs outline-none focus:border-blue-600 dark:text-white"
+              className="bg-transparent border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 text-xs outline-none focus:border-[#17233C] dark:focus:border-[#E89A5B] dark:text-white"
             />
             <input 
               type="text" 
               placeholder="Street" 
-              className="bg-transparent border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 text-xs outline-none focus:border-blue-600 dark:text-white"
+              className="bg-transparent border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 text-xs outline-none focus:border-[#17233C] dark:focus:border-[#E89A5B] dark:text-white"
             />
             <input 
               type="text" 
               placeholder="Building" 
-              className="bg-transparent border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 text-xs outline-none focus:border-blue-600 dark:text-white"
+              className="bg-transparent border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 text-xs outline-none focus:border-[#17233C] dark:focus:border-[#E89A5B] dark:text-white"
             />
             <input 
               type="text" 
               placeholder="Postal code" 
-              className="bg-transparent border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 text-xs outline-none md:col-span-2 focus:border-blue-600 dark:text-white"
+              className="bg-transparent border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 text-xs outline-none md:col-span-2 focus:border-[#17233C] dark:focus:border-[#E89A5B] dark:text-white"
             />
           </div>
 
           <div>
-            <button className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-6 py-2.5 rounded-lg transition-colors flex items-center gap-1.5 cursor-pointer shadow-sm">
+            <button className="bg-[#17233C] hover:bg-[#E89A5B] text-white text-xs font-semibold px-6 py-2.5 rounded-xl transition-all duration-300 flex items-center gap-1.5 cursor-pointer shadow-sm">
               <i className="fa-solid fa-plus text-[10px]"></i>
               <span>Add Address</span>
             </button>
@@ -116,11 +118,11 @@ const Profile = () => {
         {/* 3. Change Password Section */}
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-[#E5E7EB] dark:border-gray-700 p-6 space-y-4">
           <div className="flex items-center gap-2 border-b border-[#E5E7EB] dark:border-gray-700 pb-3">
-            <i className="fa-solid fa-lock text-blue-600 dark:text-blue-400"></i>
+            <i className="fa-solid fa-lock text-[#E89A5B]"></i>
             <h2 className="text-sm font-bold text-[#17233C] dark:text-white">Change Password</h2>
           </div>
           <div>
-            <button className="border border-blue-600 text-blue-600 hover:bg-blue-50 dark:hover:bg-gray-700 text-xs font-semibold px-6 py-2.5 rounded-lg transition-colors cursor-pointer">
+            <button className="border border-[#17233C] dark:border-gray-600 text-[#17233C] dark:text-white hover:bg-[#17233C] hover:text-white dark:hover:bg-gray-700 text-xs font-semibold px-6 py-2.5 rounded-xl transition-all duration-200 cursor-pointer">
               Change Password
             </button>
           </div>
@@ -130,7 +132,7 @@ const Profile = () => {
         <div>
           <button
             onClick={handleLogout}
-            className="w-full bg-[#DC2626] hover:bg-red-700 text-white transition-all py-3 rounded-xl text-xs font-bold tracking-wider cursor-pointer shadow-sm flex items-center justify-center gap-2"
+            className="w-full bg-red-500 hover:bg-red-600 text-white transition-all py-3 rounded-xl text-xs font-bold tracking-wider cursor-pointer shadow-sm hover:shadow flex items-center justify-center gap-2"
           >
             <i className="fa-solid fa-right-from-bracket text-sm"></i>
             <span>Logout</span>
