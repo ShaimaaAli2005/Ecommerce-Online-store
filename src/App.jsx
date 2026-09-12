@@ -54,8 +54,13 @@ function App() {
 
           {/* 2. مسارات المتجر مع Navbar و Footer */}
           <Route element={<MainLayout />}>
+feature/navbar-and-routes
+            <Route path="/" element={<Wishlist />} />
+            <Route path="/shop" element={<Wishlist />} />
+
             <Route path="/" element={<Navigate to="/login" replace />} />
             <Route path="/shop" element={<Shop />} />
+ develop
             <Route path="/wishlist" element={<Wishlist />} />
             <Route path="/cart" element={<Cart />} />
             <Route path="/products/:id" element={<ProductDetails />} />

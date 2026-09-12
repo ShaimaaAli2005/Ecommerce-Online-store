@@ -34,8 +34,11 @@ i18n
       ar: {
         auth: arAuth,
         wishlist: arWishlist,
+ feature/navbar-and-routes
+
         shop: arShop,
         profile: arProfile,
+ develop
         // cart: arCart,
       },
     },

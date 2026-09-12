@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext'; 
 
 const Navbar = ({ wishlistCount = 0 }) => {
-  const { t } = useTranslation('auth');
+  const { t, i18n } = useTranslation('auth');
   const navigate = useNavigate();
+  const location = useLocation();
   const { cartCount } = useCart();
   
   const { user } = useAuth();
@@ -17,6 +18,16 @@ const Navbar = ({ wishlistCount = 0 }) => {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [isDarkMode, setIsDarkMode] = useState(false);
+
+  const currentLang = i18n.language || 'en';
+
+  const toggleLanguage = () => {
+    const nextLang = currentLang.startsWith('ar') ? 'en' : 'ar';
+    i18n.changeLanguage(nextLang);
+    localStorage.setItem('luma_lang', nextLang);
+    document.documentElement.dir = nextLang === 'ar' ? 'rtl' : 'ltr';
+    document.documentElement.lang = nextLang;
+  };
 
   // التأكد من وضع الداركات عند فتح الصفحة
   useEffect(() => {
@@ -53,11 +64,19 @@ const Navbar = ({ wishlistCount = 0 }) => {
     }
   };
 
+  useEffect(() => {
+    const path = location.pathname;
+    if (path === '/shop') setActiveTab('Shop');
+    else if (path.startsWith('/my-orders')) setActiveTab('My Orders');
+    else if (path.startsWith('/wishlist')) setActiveTab('Wishlist');
+    else setActiveTab('Home');
+  }, [location.pathname]);
+
   const navLinks = [
-    { name: 'Home', href: '/' },
-    { name: 'Shop', href: '/shop' },
-    { name: 'My Orders', href: '/my-orders' },
-    { name: 'Wishlist', href: '/wishlist' },
+    { tabKey: 'Home', name: t('navbar.home', 'Home'), href: '/' },
+    { tabKey: 'Shop', name: t('navbar.shop', 'Shop'), href: '/shop' },
+    { tabKey: 'My Orders', name: t('navbar.myOrders', 'My Orders'), href: '/my-orders' },
+    { tabKey: 'Wishlist', name: t('navbar.wishlist', 'Wishlist'), href: '/wishlist' },
   ];
 
   return (
@@ -65,34 +84,41 @@ const Navbar = ({ wishlistCount = 0 }) => {
       <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
         
         {/* Logo */}
-        <div className="flex items-center gap-2 shrink-0">
+        <Link 
+          to="/" 
+          onClick={() => setActiveTab('Home')}
+          className="flex items-center gap-2 shrink-0 cursor-pointer"
+        >
           <span className="font-bold text-2xl tracking-wider font-['Poppins'] text-[#17233C] dark:text-white">
             LUMA
           </span>
-        </div>
+        </Link>
 
         {/* Navigation Pills */}
-        <div className="hidden md:flex items-center bg-[#F7F5F0] dark:bg-gray-800 p-1 rounded-full border border-[#E5E7EB] dark:border-gray-700 space-x-1">
-          {navLinks.map((link) => (
-            <button
-              key={link.name}
-              onClick={() => {
-                setActiveTab(link.name);
-                navigate(link.href);
-              }}
-              className={`px-5 py-1.5 rounded-full text-sm font-medium transition-all duration-200 ${
-                activeTab === link.name
-                  ? 'bg-[#17233C] text-[#FFFFFF] shadow-sm'
-                  : 'text-[#7B8190] dark:text-gray-300 hover:text-[#1F2937] dark:hover:text-white hover:bg-[#E5E7EB]/50'
-              }`}
-            >
-              {link.name}
-            </button>
-          ))}
+        <div className="hidden md:flex items-center bg-[#F7F5F0] dark:bg-gray-800 p-1 rounded-full border border-[#E5E7EB] dark:border-gray-700 gap-1">
+          {navLinks.map((link) => {
+            const active = activeTab === link.tabKey;
+            return (
+              <button
+                key={link.tabKey}
+                onClick={() => {
+                  setActiveTab(link.tabKey);
+                  navigate(link.href);
+                }}
+                className={`px-5 py-1.5 rounded-full text-sm font-medium transition-all duration-200 cursor-pointer ${
+                  active
+                    ? 'bg-[#17233C] text-white dark:bg-white dark:text-[#17233C] shadow-sm font-semibold'
+                    : 'text-[#7B8190] dark:text-gray-300 hover:text-[#1F2937] dark:hover:text-white hover:bg-[#E5E7EB]/50'
+                }`}
+              >
+                {link.name}
+              </button>
+            );
+          })}
         </div>
 
         {/* Icons & Actions */}
-        <div className="hidden md:flex items-center gap-5 text-[#7B8190] dark:text-gray-300">
+        <div className="hidden md:flex items-center gap-4 text-[#7B8190] dark:text-gray-300">
           
           {/* Search Box */}
           {isSearchOpen ? (
@@ -102,7 +128,7 @@ const Navbar = ({ wishlistCount = 0 }) => {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search..."
+                placeholder={t('navbar.searchPlaceholder', 'Search...')}
                 autoFocus
                 className="w-36 lg:w-44 bg-transparent border-none outline-none text-xs text-gray-800 dark:text-white px-1 placeholder-gray-400"
               />
@@ -160,22 +186,32 @@ const Navbar = ({ wishlistCount = 0 }) => {
             )}
           </div>
 
+          {/* Language Toggle Button */}
+          <button 
+            onClick={toggleLanguage}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-[#F7F5F0] dark:bg-gray-800 text-[#17233C] dark:text-white hover:bg-[#E89A5B] hover:text-white dark:hover:bg-[#E89A5B] dark:hover:text-white border border-[#E5E7EB] dark:border-gray-700 transition-all duration-300 shadow-sm cursor-pointer group"
+            title="Toggle Language"
+          >
+            <i className="fa-solid fa-globe text-sm text-[#E89A5B] group-hover:text-white transition-colors"></i>
+            <span>{currentLang.startsWith('ar') ? 'EN' : 'عربي'}</span>
+          </button>
+
           {/* Admin Profile Link OR Login Button */}
           {isLoggedIn ? (
             <Link 
               to="/profile"
-              className="flex items-center gap-2 border border-[#17233C] dark:border-white text-[#17233C] dark:text-white hover:bg-[#17233C] dark:hover:bg-white hover:text-[#FFFFFF] dark:hover:text-[#17233C] transition-all px-3.5 py-1.5 rounded-[10px] text-xs font-semibold tracking-wider ml-2"
+              className="flex items-center gap-2 border border-[#17233C] dark:border-white text-[#17233C] dark:text-white hover:bg-[#17233C] dark:hover:bg-white hover:text-[#FFFFFF] dark:hover:text-[#17233C] transition-all px-3.5 py-1.5 rounded-[10px] text-xs font-semibold tracking-wider"
             >
               <i className="fa-regular fa-user text-sm"></i>
-              <span>Admin</span>
+              <span>{t('navbar.admin', 'Admin')}</span>
             </Link>
           ) : (
             <Link 
               to="/login"
-              className="flex items-center gap-2 border border-[#17233C] dark:border-white text-[#17233C] dark:text-white hover:bg-[#17233C] dark:hover:bg-white hover:text-[#FFFFFF] dark:hover:text-[#17233C] transition-all px-3.5 py-1.5 rounded-[10px] text-xs font-semibold tracking-wider ml-2"
+              className="flex items-center gap-2 border border-[#17233C] dark:border-white text-[#17233C] dark:text-white hover:bg-[#17233C] dark:hover:bg-white hover:text-[#FFFFFF] dark:hover:text-[#17233C] transition-all px-3.5 py-1.5 rounded-[10px] text-xs font-semibold tracking-wider"
             >
               <i className="fa-regular fa-user text-sm"></i>
-              <span>Login</span>
+              <span>{t('navbar.login', 'Login')}</span>
             </Link>
           )}
 
@@ -194,20 +230,46 @@ const Navbar = ({ wishlistCount = 0 }) => {
       {/* Mobile Menu */}
       {isOpen && (
         <div className="md:hidden bg-[#FFFFFF] dark:bg-gray-900 border-t border-[#E5E7EB] dark:border-gray-800 mt-3 pt-3 pb-3 space-y-2 text-sm text-[#7B8190] dark:text-gray-300">
-          {navLinks.map((link) => (
-            <button
-              key={link.name}
-              onClick={() => {
-                setActiveTab(link.name);
-                navigate(link.href);
-                setIsOpen(false);
-              }}
-              className="block w-full text-left px-4 py-2 rounded-lg hover:bg-[#F7F5F0] dark:hover:bg-gray-800 hover:text-[#17233C] dark:hover:text-white transition-colors"
-            >
-              {link.name}
-            </button>
-          ))}
-          <div className="pt-2 border-t border-[#E5E7EB] dark:border-gray-800 px-4">
+          {navLinks.map((link) => {
+            const active = activeTab === link.tabKey;
+            return (
+              <button
+                key={link.tabKey}
+                onClick={() => {
+                  setActiveTab(link.tabKey);
+                  navigate(link.href);
+                  setIsOpen(false);
+                }}
+                className={`block w-full text-start px-4 py-2 rounded-lg transition-colors ${
+                  active
+                    ? 'bg-[#17233C] text-white dark:bg-white dark:text-[#17233C] font-semibold'
+                    : 'hover:bg-[#F7F5F0] dark:hover:bg-gray-800 hover:text-[#17233C] dark:hover:text-white'
+                }`}
+              >
+                {link.name}
+              </button>
+            );
+          })}
+          <div className="pt-2 border-t border-[#E5E7EB] dark:border-gray-800 px-4 space-y-3">
+            {/* Language & Theme Toggle in Mobile */}
+            <div className="flex items-center justify-between py-1 px-1">
+              <button
+                onClick={toggleLanguage}
+                className="flex items-center gap-2 text-xs font-semibold text-[#17233C] dark:text-white hover:text-[#E89A5B] transition-colors p-1.5"
+              >
+                <i className="fa-solid fa-globe text-sm"></i>
+                <span>{currentLang.startsWith('ar') ? 'English' : 'عربي'}</span>
+              </button>
+
+              <button
+                onClick={handleToggleDarkMode}
+                className="flex items-center gap-2 text-xs font-bold text-[#17233C] dark:text-white hover:text-[#E89A5B] transition-colors p-1.5"
+              >
+                <i className={`fa-solid ${isDarkMode ? 'fa-moon text-[#E89A5B]' : 'fa-sun'} text-sm`}></i>
+                <span>{isDarkMode ? 'Dark Mode' : 'Light Mode'}</span>
+              </button>
+            </div>
+
             {isLoggedIn ? (
               <Link
                 to="/profile"
@@ -215,7 +277,7 @@ const Navbar = ({ wishlistCount = 0 }) => {
                 className="w-full flex items-center justify-center gap-2 border border-[#17233C] dark:border-white text-[#17233C] dark:text-white py-2 rounded-[10px] text-xs font-semibold hover:bg-[#17233C] dark:hover:bg-white hover:text-[#FFFFFF] dark:hover:text-[#17233C] transition-all"
               >
                 <i className="fa-regular fa-user text-sm"></i>
-                <span>Admin</span>
+                <span>{t('navbar.admin', 'Admin')}</span>
               </Link>
             ) : (
               <Link 
@@ -224,7 +286,7 @@ const Navbar = ({ wishlistCount = 0 }) => {
                 className="w-full flex items-center justify-center gap-2 border border-[#17233C] dark:border-white text-[#17233C] dark:text-white py-2 rounded-[10px] text-xs font-semibold hover:bg-[#17233C] dark:hover:bg-white hover:text-[#FFFFFF] dark:hover:text-[#17233C] transition-all"
               >
                 <i className="fa-regular fa-user text-sm"></i>
-                <span>Login</span>
+                <span>{t('navbar.login', 'Login')}</span>
               </Link>
             )}
           </div>
