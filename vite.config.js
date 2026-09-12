@@ -7,9 +7,14 @@ export default defineConfig({
     react(),
     tailwindcss(),
   ],
-  
   server: {
     port: 5173,
-    strictPort: true,
+    proxy: {
+      '/api': {
+        target: 'https://e-commerce-api-3wara.vercel.app',
+        changeOrigin: true,
+        secure: false,
+      },
+    },
   },
-})
+});

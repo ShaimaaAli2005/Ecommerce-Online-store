@@ -1,5 +1,5 @@
 @import "tailwindcss";
-
+@custom-variant dark (&:where(.dark, .dark *));
 @layer base {
   :root {
     --primary: #17233C;
@@ -14,13 +14,21 @@
     --border: #E5E7EB;
   }
 
+  
   body {
     background-color: var(--background);
     color: var(--text);
     font-family: 'Inter', sans-serif;
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+
+  html.dark body {
+    background-color: #0F172A;
+    color: #FFFFFF;
   }
 
   h1, h2, h3, h4, h5, h6 {
     font-family: 'Poppins', sans-serif;
   }
 }
+
