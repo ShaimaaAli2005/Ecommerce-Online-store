@@ -37,9 +37,9 @@ const initialWishlistItems = [
 ];
 
 const Wishlist = () => {
-  const { t, i18n } = useTranslation(['wishlist', 'auth']);
-  const currentLang = i18n.language || 'en';
-  const isRtl = currentLang === 'ar';
+  // 1. تحديد namespace الخاص بقائمة الرغبات مباشرة
+  const { t, i18n } = useTranslation('wishlist');
+  const isRtl = i18n.language === 'ar';
 
   const [items, setItems] = useState(initialWishlistItems);
   const [addedIds, setAddedIds] = useState([]);
@@ -70,19 +70,20 @@ const Wishlist = () => {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between pb-6 border-b border-[#E5E7EB] mb-8 gap-4">
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold text-[#17233C] font-['Poppins']">
-              {t('wishlist:pageTitle')}
+              {t('pageTitle', 'My Wishlist')}
             </h1>
             <p className="text-sm text-[#7B8190] mt-1">
-              {t('wishlist:itemsCount', { count: items.length })}
+              {t('itemsCount', { count: items.length, defaultValue: `${items.length} items saved` })}
             </p>
           </div>
 
           {items.length > 0 && (
             <button
+              type="button"
               onClick={handleClearAll}
               className="self-start sm:self-auto text-xs font-semibold text-[#7B8190] hover:text-[#C95C5C] transition-colors cursor-pointer py-1.5 px-3 border border-[#E5E7EB] rounded-lg bg-white shadow-xs"
             >
-              {t('wishlist:clearAll')}
+              {t('clearAll', 'Clear All')}
             </button>
           )}
         </div>
@@ -94,16 +95,16 @@ const Wishlist = () => {
               ♡
             </div>
             <h2 className="text-xl font-bold text-[#17233C] mb-2 font-['Poppins']">
-              {t('wishlist:emptyTitle')}
+              {t('emptyTitle', 'Your wishlist is empty')}
             </h2>
             <p className="text-sm text-[#7B8190] mb-6 leading-relaxed">
-              {t('wishlist:emptySubtitle')}
+              {t('emptySubtitle', 'Explore our products and save your favorite items here.')}
             </p>
             <Link
-              to="/"
+              to="/shop"
               className="inline-block bg-[#17233C] hover:bg-[#E89A5B] text-white px-6 py-2.5 rounded-[10px] text-sm font-medium transition-colors shadow-sm"
             >
-              {t('wishlist:startShopping')}
+              {t('startShopping', 'Start Shopping')}
             </Link>
           </div>
         ) : (
@@ -121,8 +122,9 @@ const Wishlist = () => {
                 >
                   {/* زر الحذف السريع */}
                   <button
+                    type="button"
                     onClick={() => handleRemove(product.id)}
-                    title={t('wishlist:removeTooltip')}
+                    title={t('removeTooltip', 'Remove from wishlist')}
                     className={`absolute top-3 ${isRtl ? 'left-3' : 'right-3'} z-10 w-8 h-8 rounded-full bg-white/90 hover:bg-[#FEE2E2] text-[#7B8190] hover:text-[#C95C5C] flex items-center justify-center transition-colors shadow-xs cursor-pointer border border-[#E5E7EB]`}
                   >
                     ✕
@@ -143,7 +145,7 @@ const Wishlist = () => {
                           : 'bg-[#FEE2E2]/95 text-[#B91C1C]'
                       }`}
                     >
-                      {product.inStock ? t('wishlist:inStock') : t('wishlist:outOfStock')}
+                      {product.inStock ? t('inStock', 'In Stock') : t('outOfStock', 'Out of Stock')}
                     </span>
                   </div>
 
@@ -156,7 +158,7 @@ const Wishlist = () => {
                       <h3 className="text-base font-bold text-[#17233C] mt-1 line-clamp-1">
                         {displayName}
                       </h3>
-                      <p className="text-base font-semibold text-[#17233C] mt-2 font-['Poppins']">
+                      <p className="text-base font-semibold text-[#17233C] mt-2 font-['Poppins']" dir="ltr">
                         ${product.price.toFixed(2)}
                       </p>
                     </div>
@@ -164,6 +166,7 @@ const Wishlist = () => {
                     {/* زر الإضافة للسلة */}
                     <div className="pt-4 mt-4 border-t border-[#F3F4F6]">
                       <button
+                        type="button"
                         onClick={() => handleAddToCart(product.id)}
                         disabled={!product.inStock || isAdded}
                         className={`w-full py-2.5 px-4 rounded-[10px] text-xs font-semibold transition-all duration-200 shadow-xs flex items-center justify-center gap-2 cursor-pointer ${
@@ -177,10 +180,10 @@ const Wishlist = () => {
                         {isAdded ? (
                           <>
                             <span>✓</span>
-                            <span>{t('wishlist:addedToCart')}</span>
+                            <span>{t('addedToCart', 'Added to Cart')}</span>
                           </>
                         ) : (
-                          t('wishlist:addToCart')
+                          t('addToCart', 'Add to Cart')
                         )}
                       </button>
                     </div>

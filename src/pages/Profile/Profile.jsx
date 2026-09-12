@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../context/AuthContext';
 import userService from '../../services/userService';
 import md5 from 'crypto-js/md5';
@@ -8,7 +9,6 @@ const getGravatarUrl = (email) => {
   if (!email) return '';
   const cleanEmail = email.trim().toLowerCase();
   const hash = md5(cleanEmail).toString();
-  // d=identicon تعيد شكلاً هندسياً فريداً للمستخدم إذا لم تكن هناك صورة، أو d=mp لأيقونة رمادية
   return `https://www.gravatar.com/avatar/${hash}?d=mp&s=150`;
 };
 
@@ -23,6 +23,10 @@ const maskEmail = (email) => {
 };
 
 export default function Profile() {
+  // 1. تحديد namespace الخاص بالبروفايل مباشرة
+  const { t, i18n } = useTranslation('profile');
+  const isRtl = i18n.language === 'ar';
+
   const { user, setUser, refreshUser } = useAuth();
   
   const [activeTab, setActiveTab] = useState('info');
@@ -52,20 +56,19 @@ export default function Profile() {
     }
   }, [user]);
 
-  // تحديث البيانات الأساسية (PATCH /users/{id} باستخدام username و phone)
+  // تحديث البيانات الأساسية
   const handleUpdateProfile = async (e) => {
     e.preventDefault();
 
     const userId = user?._id || user?.id;
     if (!userId) {
-      toast.error('تعذر تحديد هوية المستخدم');
+      toast.error(t('idError', 'تعذر تحديد هوية المستخدم'));
       return;
     }
 
     try {
       setLoading(true);
 
-      // الـ Payload الدقيق المطابق لـ Swagger
       const payload = {
         username: userData.username,
         phone: userData.phone,
@@ -73,7 +76,6 @@ export default function Profile() {
 
       const res = await userService.updateUserProfile(userId, payload);
 
-      // استخراج المستخدم المحدث من استجابة السيرفر (res.data.user)
       const updatedUser = res?.user || res?.data?.user || {
         ...user,
         username: userData.username,
@@ -101,9 +103,9 @@ export default function Profile() {
         await refreshUser();
       }
 
-      toast.success('تم تحديث البيانات بنجاح');
+      toast.success(t('updateSuccess', 'تم تحديث البيانات بنجاح'));
     } catch (err) {
-      toast.error(err.response?.data?.message || 'فشل تحديث البيانات');
+      toast.error(err.response?.data?.message || t('updateError', 'فشل تحديث البيانات'));
     } finally {
       setLoading(false);
     }
@@ -112,17 +114,17 @@ export default function Profile() {
   // إرسال رمز التحقق
   const handleSendOtp = async () => {
     if (!userData.email) {
-      toast.error('البريد الإلكتروني غير متوفر');
+      toast.error(t('emailMissing', 'البريد الإلكتروني غير متوفر'));
       return;
     }
 
     try {
       setLoading(true);
       await userService.sendResetOtp(userData.email);
-      toast.success('تم إرسال رمز التحقق بنجاح');
+      toast.success(t('otpSentSuccess', 'تم إرسال رمز التحقق بنجاح'));
       setOtpSent(true);
     } catch (err) {
-      toast.error(err.response?.data?.message || 'فشل إرسال كود التحقق');
+      toast.error(err.response?.data?.message || t('otpSendFailed', 'فشل إرسال كود التحقق'));
     } finally {
       setLoading(false);
     }
@@ -132,62 +134,60 @@ export default function Profile() {
   const handleConfirmReset = async (e) => {
     e.preventDefault();
     if (!otp.trim()) {
-      toast.error('يرجى إدخال كود التحقق');
+      toast.error(t('otpRequired', 'يرجى إدخال كود التحقق'));
       return;
     }
     if (newPassword.length < 6) {
-      toast.error('كلمة المرور يجب ألا تقل عن 6 أحرف');
+      toast.error(t('passwordMinLength', 'كلمة المرور يجب ألا تقل عن 6 أحرف'));
       return;
     }
     if (newPassword !== confirmPassword) {
-      toast.error('كلمة المرور وتأكيدها غير متطابقين');
+      toast.error(t('passwordMismatch', 'كلمة المرور وتأكيدها غير متطابقين'));
       return;
     }
 
     try {
       setLoading(true);
       await userService.verifyResetOtp(userData.email, otp, newPassword);
-      toast.success('تم تغيير كلمة المرور بنجاح');
+      toast.success(t('passwordChanged', 'تم تغيير كلمة المرور بنجاح'));
       setOtpSent(false);
       setOtp('');
       setNewPassword('');
       setConfirmPassword('');
     } catch (err) {
-      toast.error(err.response?.data?.message || 'رمز التحقق غير صحيح أو منتهي');
+      toast.error(err.response?.data?.message || t('invalidOtp', 'رمز التحقق غير صحيح أو منتهي'));
     } finally {
       setLoading(false);
     }
   };
 
   const displayName = userData.username || user?.username || user?.name || '';
-  const userInitial = displayName ? displayName.trim().charAt(0).toUpperCase() : 'U';
 
   return (
-    <div className="min-h-[82vh] bg-slate-50/50 py-10 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-[82vh] bg-slate-50/50 py-10 px-4 sm:px-6 lg:px-8" dir={isRtl ? 'rtl' : 'ltr'}>
       <div className="max-w-4xl mx-auto space-y-8">
         
         {/* الكارت العلوي */}
         <div className="bg-white rounded-2xl p-6 sm:p-8 border border-slate-200/80 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-6 relative overflow-hidden">
           <div className="flex items-center gap-5 z-10">
             <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden border border-slate-200 shadow-sm bg-slate-100 flex-shrink-0">
-                <img
-                    src={user?.avatar && user.avatar !== 'string' ? user.avatar : getGravatarUrl(userData.email)}
-                    alt="Profile"
-                    className="w-full h-full object-cover"
-                    onError={(e) => {
-                    // بديل احتياطي لو فشل التحميل
-                    e.target.src = 'https://www.gravatar.com/avatar/?d=mp';
-                    }}
-                />
+              <img
+                src={user?.avatar && user.avatar !== 'string' ? user.avatar : getGravatarUrl(userData.email)}
+                alt="Profile"
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  e.target.src = 'https://www.gravatar.com/avatar/?d=mp';
+                }}
+              />
             </div>
             
-            <div className="text-right">
+            <div className={isRtl ? 'text-right' : 'text-left'}>
               <div className="flex items-center gap-2">
                 <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
-                  {displayName || 'حساب المستخدم'}
+                  {displayName || t('userAccount', 'User Account')}
                 </h1>
                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
-                  نشط
+                  {t('active', 'Active')}
                 </span>
               </div>
 
@@ -200,7 +200,7 @@ export default function Profile() {
                   type="button"
                   onClick={() => setShowFullEmail(!showFullEmail)}
                   className="text-slate-400 hover:text-slate-700 p-1 rounded transition"
-                  title={showFullEmail ? 'إخفاء البريد' : 'إظهار البريد'}
+                  title={showFullEmail ? t('hideEmail', 'إخفاء البريد') : t('showEmail', 'إظهار البريد')}
                 >
                   {showFullEmail ? (
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -219,8 +219,13 @@ export default function Profile() {
 
           <div className="z-10 flex items-center gap-3">
             <div className="text-xs text-slate-500 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg">
-              حساب موثق
+              {t('verified', 'Verified')}
             </div>
+            {user?.role === 'admin' && (
+              <div className="text-xs font-semibold px-3 py-1.5 bg-purple-50 text-purple-700 border border-purple-200 rounded-lg">
+                {t('adminRole', 'Admin')}
+              </div>
+            )}
           </div>
 
           <div className="absolute -left-10 -bottom-10 w-48 h-48 bg-blue-50/60 rounded-full blur-3xl pointer-events-none" />
@@ -238,7 +243,7 @@ export default function Profile() {
                   : 'text-slate-600 hover:text-slate-900 hover:bg-white/40'
               }`}
             >
-              البيانات الشخصية
+              {t('personalInfo', 'Personal Info')}
             </button>
 
             <button
@@ -250,7 +255,7 @@ export default function Profile() {
                   : 'text-slate-600 hover:text-slate-900 hover:bg-white/40'
               }`}
             >
-              الأمان وكلمة المرور
+              {t('security', 'Security')}
             </button>
           </div>
         </div>
@@ -259,28 +264,28 @@ export default function Profile() {
         {activeTab === 'info' && (
           <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
             <div className="px-6 py-5 sm:px-8 border-b border-slate-100 bg-slate-50/40">
-              <h2 className="text-base font-semibold text-slate-900">تعديل معلومات الحساب</h2>
-              <p className="text-xs text-slate-500 mt-0.5">يمكنك تعديل اسم المستخدم أو رقم الهاتف الخاص بالتوصيل.</p>
+              <h2 className="text-base font-semibold text-slate-900">{t('editInfo', 'Edit Account Details')}</h2>
+              <p className="text-xs text-slate-500 mt-0.5">{t('editInfoSub', 'Update username or delivery phone number.')}</p>
             </div>
 
             <form onSubmit={handleUpdateProfile} className="p-6 sm:p-8 space-y-6">
               <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
                 <div>
                   <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-2">
-                    اسم المستخدم
+                    {t('username', 'Username')}
                   </label>
                   <input
                     type="text"
                     value={userData.username}
                     onChange={(e) => setUserData({ ...userData, username: e.target.value })}
                     className="w-full px-4 py-2.5 text-sm bg-slate-50/50 border border-slate-200 rounded-xl focus:bg-white focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 outline-none transition font-medium"
-                    placeholder="اسم المستخدم"
+                    placeholder={t('username', 'Username')}
                   />
                 </div>
 
                 <div>
                   <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-2">
-                    رقم الهاتف
+                    {t('phone', 'Phone Number')}
                   </label>
                   <input
                     type="tel"
@@ -302,7 +307,7 @@ export default function Profile() {
                   {loading && (
                     <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                   )}
-                  {loading ? 'جاري الحفظ...' : 'حفظ التعديلات'}
+                  {loading ? t('saving', 'Saving...') : t('save', 'Save Changes')}
                 </button>
               </div>
             </form>
@@ -313,15 +318,15 @@ export default function Profile() {
         {activeTab === 'password' && (
           <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
             <div className="px-6 py-5 sm:px-8 border-b border-slate-100 bg-slate-50/40">
-              <h2 className="text-base font-semibold text-slate-900">تحديث كلمة المرور</h2>
-              <p className="text-xs text-slate-500 mt-0.5">يتم التحقق عبر إرسال رمز تأكيد مؤقت (OTP) إلى بريدك المسجل.</p>
+              <h2 className="text-base font-semibold text-slate-900">{t('updatePassword', 'Update Password')}</h2>
+              <p className="text-xs text-slate-500 mt-0.5">{t('updatePasswordSub', 'Verification code sent to your registered email.')}</p>
             </div>
 
             <div className="p-6 sm:p-8 max-w-xl">
               {!otpSent ? (
                 <div className="space-y-4">
                   <p className="text-sm text-slate-600 leading-relaxed">
-                    لحماية حسابك، سنقوم بإرسال رمز تحقق صالح للاستخدام مرة واحدة للتأكد من هويتك قبل تعيين كلمة المرور الجديدة.
+                    {t('otpExplain', 'We will send a one-time verification code to verify your identity.')}
                   </p>
 
                   <button
@@ -333,26 +338,26 @@ export default function Profile() {
                     {loading && (
                       <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                     )}
-                    {loading ? 'جاري إرسال الرمز...' : 'إرسال رمز التحقق الآن'}
+                    {loading ? t('sendingOtp', 'Sending code...') : t('sendOtp', 'Send Verification Code')}
                   </button>
                 </div>
               ) : (
                 <form onSubmit={handleConfirmReset} className="space-y-5">
                   <div className="p-3 bg-blue-50 border border-blue-100 text-blue-900 text-xs rounded-xl flex items-center justify-between">
-                    <span>تم إرسال رمز التحقق إلى بريدك</span>
+                    <span>{t('otpSentSuccess', 'Verification code sent')}</span>
                     <button
                       type="button"
                       onClick={handleSendOtp}
                       disabled={loading}
                       className="text-blue-700 hover:text-blue-900 font-semibold underline"
                     >
-                      إعادة الإرسال
+                      {t('resend', 'Resend')}
                     </button>
                   </div>
 
                   <div>
                     <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-2">
-                      رمز التحقق (OTP)
+                      {t('otpCode', 'Verification Code (OTP)')}
                     </label>
                     <input
                       type="text"
@@ -367,7 +372,7 @@ export default function Profile() {
 
                   <div>
                     <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-2">
-                      كلمة المرور الجديدة
+                      {t('newPassword', 'New Password')}
                     </label>
                     <input
                       type="password"
@@ -381,7 +386,7 @@ export default function Profile() {
 
                   <div>
                     <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-2">
-                      تأكيد كلمة المرور الجديدة
+                      {t('confirmPassword', 'Confirm New Password')}
                     </label>
                     <input
                       type="password"
@@ -402,14 +407,14 @@ export default function Profile() {
                       {loading && (
                         <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                       )}
-                      {loading ? 'جاري التحقق...' : 'تأكيد وحفظ'}
+                      {loading ? t('verifying', 'Verifying...') : t('confirmAndSave', 'Confirm & Save')}
                     </button>
                     <button
                       type="button"
                       onClick={() => setOtpSent(false)}
                       className="py-2.5 px-4 border border-slate-200 text-slate-600 text-sm font-semibold rounded-xl hover:bg-slate-50"
                     >
-                      إلغاء
+                      {t('cancel', 'Cancel')}
                     </button>
                   </div>
                 </form>
