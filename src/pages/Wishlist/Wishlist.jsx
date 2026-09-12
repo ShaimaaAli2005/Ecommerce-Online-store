@@ -58,16 +58,18 @@ const Wishlist = () => {
     const productId = product.id || product._id;
     
     // استدعاء الـ addToCart المتصل بالـ API الجديد
-    await addToCart(
-      {
-        id: productId,
-        name: product.name,
-        nameAr: product.nameAr,
-        price: product.price,
-        image: product.image || product.imageUrl,
-      },
-      1
-    );
+    if (addToCart) {
+      await addToCart(
+        {
+          id: productId,
+          name: product.name,
+          nameAr: product.nameAr,
+          price: product.price,
+          image: product.image || product.imageUrl,
+        },
+        1
+      );
+    }
 
     setAddedIds((prev) => [...prev, productId]);
     setTimeout(() => {
@@ -80,19 +82,11 @@ const Wishlist = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between pb-6 border-b border-[#E5E7EB] dark:border-gray-800 mb-8 gap-4">
           <div>
-<<<<<<< HEAD
-            <h1 className="text-2xl sm:text-3xl font-bold text-[#17233C] font-['Poppins']">
+            <h1 className="text-2xl sm:text-3xl font-bold text-[#17233C] dark:text-white font-['Poppins']">
               {t('pageTitle', 'My Wishlist')}
             </h1>
-            <p className="text-sm text-[#7B8190] mt-1">
-              {t('itemsCount', { count: items.length, defaultValue: `${items.length} items saved` })}
-=======
-            <h1 className="text-2xl sm:text-3xl font-bold text-[#17233C] dark:text-white font-['Poppins']">
-              {t('wishlist:pageTitle')}
-            </h1>
             <p className="text-sm text-[#7B8190] dark:text-gray-400 mt-1">
-              {t('wishlist:itemsCount', { count: items.length })}
->>>>>>> upstream/develop
+              {t('itemsCount', { count: items.length, defaultValue: `${items.length} items saved` })}
             </p>
           </div>
 
@@ -112,27 +106,15 @@ const Wishlist = () => {
             <div className="w-16 h-16 mx-auto mb-4 bg-[#F7F5F0] dark:bg-gray-700 rounded-full flex items-center justify-center text-2xl text-[#7B8190] dark:text-gray-300">
               ♡
             </div>
-<<<<<<< HEAD
-            <h2 className="text-xl font-bold text-[#17233C] mb-2 font-['Poppins']">
+            <h2 className="text-xl font-bold text-[#17233C] dark:text-white mb-2 font-['Poppins']">
               {t('emptyTitle', 'Your wishlist is empty')}
             </h2>
-            <p className="text-sm text-[#7B8190] mb-6 leading-relaxed">
+            <p className="text-sm text-[#7B8190] dark:text-gray-400 mb-6 leading-relaxed">
               {t('emptySubtitle', 'Explore our products and save your favorite items here.')}
             </p>
             <Link
               to="/shop"
-              className="inline-block bg-[#17233C] hover:bg-[#E89A5B] text-white px-6 py-2.5 rounded-[10px] text-sm font-medium transition-colors shadow-sm"
-=======
-            <h2 className="text-xl font-bold text-[#17233C] dark:text-white mb-2 font-['Poppins']">
-              {t('wishlist:emptyTitle')}
-            </h2>
-            <p className="text-sm text-[#7B8190] dark:text-gray-400 mb-6 leading-relaxed">
-              {t('wishlist:emptySubtitle')}
-            </p>
-            <Link
-              to="/"
               className="inline-block bg-[#17233C] dark:bg-white hover:bg-[#E89A5B] dark:hover:bg-[#E89A5B] text-white dark:text-[#17233C] px-6 py-2.5 rounded-[10px] text-sm font-medium transition-colors shadow-sm"
->>>>>>> upstream/develop
             >
               {t('startShopping', 'Start Shopping')}
             </Link>
@@ -152,16 +134,10 @@ const Wishlist = () => {
                   className="bg-white dark:bg-gray-800 rounded-2xl border border-[#E5E7EB] dark:border-gray-700 overflow-hidden shadow-xs hover:shadow-md transition-shadow duration-300 flex flex-col group relative"
                 >
                   <button
-<<<<<<< HEAD
                     type="button"
-                    onClick={() => handleRemove(product.id)}
-                    title={t('removeTooltip', 'Remove from wishlist')}
-                    className={`absolute top-3 ${isRtl ? 'left-3' : 'right-3'} z-10 w-8 h-8 rounded-full bg-white/90 hover:bg-[#FEE2E2] text-[#7B8190] hover:text-[#C95C5C] flex items-center justify-center transition-colors shadow-xs cursor-pointer border border-[#E5E7EB]`}
-=======
                     onClick={() => handleRemove(productId)}
-                    title={t('wishlist:removeTooltip')}
+                    title={t('removeTooltip', 'Remove from wishlist')}
                     className={`absolute top-3 ${isRtl ? 'left-3' : 'right-3'} z-10 w-8 h-8 rounded-full bg-white/90 dark:bg-gray-900/90 hover:bg-[#FEE2E2] dark:hover:bg-red-900 text-[#7B8190] dark:text-gray-300 hover:text-[#C95C5C] flex items-center justify-center transition-colors shadow-xs cursor-pointer border border-[#E5E7EB] dark:border-gray-700`}
->>>>>>> upstream/develop
                   >
                     ✕
                   </button>
@@ -191,23 +167,15 @@ const Wishlist = () => {
                       <h3 className="text-base font-bold text-[#17233C] dark:text-white mt-1 line-clamp-1">
                         {displayName}
                       </h3>
-<<<<<<< HEAD
-                      <p className="text-base font-semibold text-[#17233C] mt-2 font-['Poppins']" dir="ltr">
-=======
-                      <p className="text-base font-semibold text-[#17233C] dark:text-gray-200 mt-2 font-['Poppins']">
->>>>>>> upstream/develop
+                      <p className="text-base font-semibold text-[#17233C] dark:text-gray-200 mt-2 font-['Poppins']" dir="ltr">
                         ${product.price.toFixed(2)}
                       </p>
                     </div>
 
                     <div className="pt-4 mt-4 border-t border-[#F3F4F6] dark:border-gray-700">
                       <button
-<<<<<<< HEAD
                         type="button"
-                        onClick={() => handleAddToCart(product.id)}
-=======
                         onClick={() => handleAddToCart(product)}
->>>>>>> upstream/develop
                         disabled={!product.inStock || isAdded}
                         className={`w-full py-2.5 px-4 rounded-[10px] text-xs font-semibold transition-all duration-200 shadow-xs flex items-center justify-center gap-2 cursor-pointer ${
                           !product.inStock
