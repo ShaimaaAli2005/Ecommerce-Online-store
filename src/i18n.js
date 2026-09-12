@@ -23,7 +23,7 @@ i18n
       },
       ar: {
         auth: arAuth,
-        wishlist: enWishlist,
+        wishlist: arWishlist,
         // cart: arCart,
       },
     },

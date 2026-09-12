@@ -54,7 +54,8 @@ function App() {
 
           {/* Store pages with Navbar and Footer */}
           <Route element={<MainLayout />}>
-            <Route path="/" element={<Navigate to="/login" replace />} />
+            <Route path="/" element={<Wishlist />} />
+            <Route path="/shop" element={<Wishlist />} />
             <Route path="/wishlist" element={<Wishlist />} />
             <Route path="/cart" element={<Cart />} />
             <Route path="/products/:id" element={<ProductDetails />} />
