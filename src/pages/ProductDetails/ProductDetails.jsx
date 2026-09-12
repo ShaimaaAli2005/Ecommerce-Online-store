@@ -1,11 +1,14 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { getProductById } from "../../services/productService";
+import { getProductById, getProductReviews } from "../../services/productService";
+import { useCart } from "../../context/CartContext";
 
 const ProductDetails = () => {
   const { id } = useParams();
+  const { addToCart } = useCart();
 
   const [product, setProduct] = useState(null);
+  const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [selectedImage, setSelectedImage] = useState(0);
@@ -16,8 +19,20 @@ const ProductDetails = () => {
         setLoading(true);
         setError("");
 
-        const data = await getProductById(id);
-        setProduct(data);
+        const productData = await getProductById(id);
+        setProduct(productData);
+
+        try {
+          const reviewsData = await getProductReviews(id);
+          setReviews(
+            reviewsData.reviews ||
+              reviewsData.product?.reviews ||
+              reviewsData ||
+              []
+          );
+        } catch (reviewError) {
+          setReviews(productData.reviews || []);
+        }
       } catch (error) {
         console.error("Error fetching product:", error);
         setError("Failed to load product");
@@ -56,10 +71,6 @@ const ProductDetails = () => {
       ? product.discountPrice
       : product.price;
 
-  const reviews = Array.isArray(product.reviews)
-    ? product.reviews
-    : [];
-
   const mainImage =
     images[selectedImage]?.url ||
     images[0]?.url ||
@@ -69,12 +80,10 @@ const ProductDetails = () => {
     <div className="min-h-screen bg-[#F7F5F0] py-10">
       <div className="container mx-auto px-4">
 
-        {/* Product Details */}
         <div className="grid grid-cols-1 gap-10 rounded-2xl bg-white p-6 shadow-sm md:grid-cols-2">
 
-          {/* ================= Images ================= */}
+          {/* Images */}
           <div>
-            {/* Main Image */}
             <div className="mb-4 overflow-hidden rounded-2xl bg-[#F7F5F0]">
               <img
                 src={mainImage}
@@ -83,7 +92,6 @@ const ProductDetails = () => {
               />
             </div>
 
-            {/* Thumbnails */}
             {images.length > 1 && (
               <div className="flex gap-3 overflow-x-auto">
                 {images.map((image, index) => (
@@ -108,10 +116,9 @@ const ProductDetails = () => {
             )}
           </div>
 
-          {/* ================= Product Information ================= */}
+          {/* Product Information */}
           <div className="flex flex-col justify-center">
 
-            {/* Category */}
             {product.category && (
               <p className="mb-2 text-sm font-medium uppercase tracking-wide text-[#7B8190]">
                 {typeof product.category === "object"
@@ -120,7 +127,6 @@ const ProductDetails = () => {
               </p>
             )}
 
-            {/* Product Name */}
             <h1 className="mb-4 font-['Poppins'] text-3xl font-bold text-[#17233C]">
               {product.name}
             </h1>
@@ -140,7 +146,6 @@ const ProductDetails = () => {
               </span>
             </div>
 
-            {/* Short Description */}
             {product.shortDescription && (
               <p className="mb-5 text-[#7B8190]">
                 {product.shortDescription}
@@ -160,7 +165,6 @@ const ProductDetails = () => {
               )}
             </div>
 
-            {/* Description */}
             {product.description && (
               <p className="mb-6 leading-7 text-[#555B66]">
                 {product.description}
@@ -181,9 +185,9 @@ const ProductDetails = () => {
               </span>
             </p>
 
-            {/* Add To Cart */}
             <button
               type="button"
+              onClick={() => addToCart(product)}
               disabled={!product.stock || product.stock <= 0}
               className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#17233C] px-6 py-3 font-semibold text-white transition-colors hover:bg-[#E89A5B] disabled:cursor-not-allowed disabled:bg-gray-400"
             >
@@ -196,7 +200,7 @@ const ProductDetails = () => {
           </div>
         </div>
 
-        {/* ================= Reviews ================= */}
+        {/* Reviews */}
         <div className="mt-10 rounded-2xl bg-white p-6 shadow-sm">
           <h2 className="mb-6 font-['Poppins'] text-2xl font-bold text-[#17233C]">
             Customer Reviews
@@ -213,7 +217,6 @@ const ProductDetails = () => {
                   key={review._id || index}
                   className="border-b border-[#E5E7EB] pb-5 last:border-b-0"
                 >
-                  {/* Reviewer + Rating */}
                   <div className="mb-2 flex items-center justify-between">
                     <h3 className="font-semibold text-[#17233C]">
                       {review.user?.name ||
@@ -230,7 +233,6 @@ const ProductDetails = () => {
                     </div>
                   </div>
 
-                  {/* Review Comment */}
                   <p className="text-sm leading-6 text-[#7B8190]">
                     {review.comment ||
                       review.review ||

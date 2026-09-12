@@ -1,51 +1,46 @@
 import { Link } from "react-router-dom";
 
-const ProductCard = ({
-  product,
-  onAddToCart,
-  onAddToWishlist,
-}) => {
+const ProductCard = ({ product }) => {
   const {
+    _id,
     name,
-    title,
-    image,
-    imageUrl,
-    category,
     price,
-    discount,
-    rating,
+    discountPrice,
+    images,
+    category,
+    brand,
+    averageRating,
+    numReviews,
   } = product;
 
-  const productName = name || title || "Product";
-  const productImage = image || imageUrl;
+  const productImage =
+    images?.[0]?.url || "/placeholder-product.png";
 
-  const finalPrice = discount
-    ? price - (price * discount) / 100
-    : price;
+  const hasDiscount =
+    discountPrice !== undefined &&
+    discountPrice !== null &&
+    discountPrice > 0 &&
+    discountPrice < price;
 
   return (
     <article className="group overflow-hidden rounded-2xl border border-[#E5E7EB] bg-white transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
-      {/* Product Image */}
       <div className="relative aspect-square overflow-hidden bg-[#F7F5F0]">
-        <Link to={`/products/${product._id}`}>
+        <Link to={`/products/${_id}`}>
           <img
             src={productImage}
-            alt={productName}
+            alt={name}
             className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
           />
         </Link>
 
-        {/* Discount */}
-        {discount > 0 && (
+        {hasDiscount && (
           <span className="absolute left-3 top-3 rounded-full bg-[#E89A5B] px-3 py-1 text-xs font-semibold text-white">
-            -{discount}%
+            Sale
           </span>
         )}
 
-        {/* Wishlist */}
         <button
           type="button"
-          onClick={() => onAddToWishlist?.(product)}
           className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full bg-white text-[#17233C] shadow-sm transition-colors hover:bg-[#E89A5B] hover:text-white"
           aria-label="Add to wishlist"
         >
@@ -53,51 +48,62 @@ const ProductCard = ({
         </button>
       </div>
 
-      {/* Product Info */}
       <div className="p-4">
         {category && (
           <p className="mb-1 text-xs font-medium uppercase tracking-wide text-[#7B8190]">
-            {category}
+            {typeof category === "object"
+              ? category.name
+              : category}
           </p>
         )}
 
         <Link
-          to={`/products/${product._id}`}
+          to={`/products/${_id}`}
           className="line-clamp-2 min-h-[48px] font-['Poppins'] text-base font-semibold text-[#17233C]"
         >
-          {productName}
+          {name}
         </Link>
 
-        {/* Rating */}
-        {rating !== undefined && (
+        {brand && (
+          <p className="mt-1 text-xs text-[#7B8190]">
+            {brand}
+          </p>
+        )}
+
+        {averageRating !== undefined && (
           <div className="mt-2 flex items-center gap-1 text-sm">
             <i className="fa-solid fa-star text-[#E89A5B]"></i>
-            <span className="text-[#7B8190]">{rating}</span>
+
+            <span className="text-[#7B8190]">
+              {averageRating}
+
+              {numReviews !== undefined && (
+                <span className="ml-1">
+                  ({numReviews})
+                </span>
+              )}
+            </span>
           </div>
         )}
 
-        {/* Price */}
         <div className="mt-3 flex items-center gap-2">
           <span className="text-lg font-bold text-[#17233C]">
-            {finalPrice} EGP
+            {hasDiscount ? discountPrice : price} EGP
           </span>
 
-          {discount > 0 && (
+          {hasDiscount && (
             <span className="text-sm text-[#7B8190] line-through">
               {price} EGP
             </span>
           )}
         </div>
 
-        {/* Add To Cart */}
-        <button
-          type="button"
-          onClick={() => onAddToCart?.(product)}
+        <Link
+          to={`/products/${_id}`}
           className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-[#17233C] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#E89A5B]"
         >
-          <i className="fa-solid fa-cart-shopping"></i>
-          Add to Cart
-        </button>
+          View Details
+        </Link>
       </div>
     </article>
   );

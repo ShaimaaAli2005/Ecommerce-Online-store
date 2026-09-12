@@ -1,8 +1,21 @@
-import axios from "axios";
+import api from "../api/axios";
 
-const API_URL = "https://e-commerce-api-3wara.vercel.app";
+export const getProducts = async (params = {}) => {
+  const response = await api.get("/products", {
+    params,
+  });
+
+  return response.data;
+};
 
 export const getProductById = async (id) => {
-  const response = await axios.get(`${API_URL}/products/${id}`);
+  const response = await api.get(`/products/${id}`);
+
   return response.data.product;
+};
+
+export const getProductReviews = async (id) => {
+  const response = await api.get(`/products/${id}/reviews`);
+
+  return response.data;
 };
