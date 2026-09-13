@@ -58,7 +58,7 @@ export const CartProvider = ({ children }) => {
     const productId = typeof product === 'object' ? (product.id || product._id) : product;
     const productName = typeof product === 'object' ? (product.name || product.title || 'Product') : 'Product';
     const productPrice = typeof product === 'object' ? (product.price || 0) : 0;
-    const productImage = typeof product === 'object' ? (product.image || product.imageUrl || '') : '';
+    const productImage = typeof product === 'object' ? (product.image || product.imageUrl || product.images?.[0]?.url || '') : '';
 
     if (!productId) {
       toast.error('Product ID missing');
@@ -175,4 +175,4 @@ export const useCart = () => {
     throw new Error('useCart must be used within a CartProvider');
   }
   return context;
-};
+};
