@@ -1,5 +1,5 @@
-<<<<<<< HEAD
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../context/AuthContext';
@@ -24,12 +24,12 @@ const maskEmail = (email) => {
 };
 
 export default function Profile() {
-  // 1. تحديد namespace الخاص بالبروفايل مباشرة
+  const navigate = useNavigate();
   const { t, i18n } = useTranslation('profile');
   const isRtl = i18n.language === 'ar';
 
-  const { user, setUser, refreshUser } = useAuth();
-  
+  const { user, setUser, refreshUser, logoutUser } = useAuth();
+
   const [activeTab, setActiveTab] = useState('info');
   const [loading, setLoading] = useState(false);
   const [showFullEmail, setShowFullEmail] = useState(false);
@@ -162,16 +162,29 @@ export default function Profile() {
     }
   };
 
+  // تسجيل الخروج
+  const handleLogout = async () => {
+    try {
+      if (logoutUser) {
+        await logoutUser();
+      }
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      navigate('/login', { replace: true });
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
+  };
+
   const displayName = userData.username || user?.username || user?.name || '';
 
   return (
-    <div className="min-h-[82vh] bg-slate-50/50 py-10 px-4 sm:px-6 lg:px-8" dir={isRtl ? 'rtl' : 'ltr'}>
+    <div className="min-h-screen bg-[#F7F5F0] dark:bg-[#0F172A] py-10 px-4 sm:px-6 lg:px-8 transition-colors duration-300" dir={isRtl ? 'rtl' : 'ltr'}>
       <div className="max-w-4xl mx-auto space-y-8">
-        
         {/* الكارت العلوي */}
-        <div className="bg-white rounded-2xl p-6 sm:p-8 border border-slate-200/80 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-6 relative overflow-hidden">
+        <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 sm:p-8 border border-slate-200/80 dark:border-gray-700 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-6 relative overflow-hidden">
           <div className="flex items-center gap-5 z-10">
-            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden border border-slate-200 shadow-sm bg-slate-100 flex-shrink-0">
+            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden border border-slate-200 dark:border-gray-600 shadow-sm bg-slate-100 dark:bg-gray-700 flex-shrink-0">
               <img
                 src={user?.avatar && user.avatar !== 'string' ? user.avatar : getGravatarUrl(userData.email)}
                 alt="Profile"
@@ -181,26 +194,26 @@ export default function Profile() {
                 }}
               />
             </div>
-            
+
             <div className={isRtl ? 'text-right' : 'text-left'}>
               <div className="flex items-center gap-2">
-                <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+                <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
                   {displayName || t('userAccount', 'User Account')}
                 </h1>
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
                   {t('active', 'Active')}
                 </span>
               </div>
 
               {/* البريد الإلكتروني المشفر */}
               <div className="flex items-center gap-2 mt-1" dir="ltr">
-                <span className="text-sm font-mono text-slate-500">
+                <span className="text-sm font-mono text-slate-500 dark:text-gray-400">
                   {showFullEmail ? userData.email : maskEmail(userData.email)}
                 </span>
                 <button
                   type="button"
                   onClick={() => setShowFullEmail(!showFullEmail)}
-                  className="text-slate-400 hover:text-slate-700 p-1 rounded transition"
+                  className="text-slate-400 hover:text-slate-700 dark:hover:text-gray-200 p-1 rounded transition cursor-pointer"
                   title={showFullEmail ? t('hideEmail', 'إخفاء البريد') : t('showEmail', 'إظهار البريد')}
                 >
                   {showFullEmail ? (
@@ -219,29 +232,27 @@ export default function Profile() {
           </div>
 
           <div className="z-10 flex items-center gap-3">
-            <div className="text-xs text-slate-500 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg">
+            <div className="text-xs text-slate-500 dark:text-gray-400 bg-slate-50 dark:bg-gray-700/50 border border-slate-200 dark:border-gray-700 px-3 py-1.5 rounded-lg">
               {t('verified', 'Verified')}
             </div>
             {user?.role === 'admin' && (
-              <div className="text-xs font-semibold px-3 py-1.5 bg-purple-50 text-purple-700 border border-purple-200 rounded-lg">
+              <div className="text-xs font-semibold px-3 py-1.5 bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800 rounded-lg">
                 {t('adminRole', 'Admin')}
               </div>
             )}
           </div>
-
-          <div className="absolute -left-10 -bottom-10 w-48 h-48 bg-blue-50/60 rounded-full blur-3xl pointer-events-none" />
         </div>
 
         {/* شريط التبويبات */}
         <div className="flex justify-start">
-          <div className="inline-flex p-1.5 bg-slate-200/60 rounded-xl border border-slate-200 backdrop-blur-sm gap-1">
+          <div className="inline-flex p-1.5 bg-slate-200/60 dark:bg-gray-800 rounded-xl border border-slate-200 dark:border-gray-700 backdrop-blur-sm gap-1">
             <button
               type="button"
               onClick={() => setActiveTab('info')}
-              className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 ${
+              className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 cursor-pointer ${
                 activeTab === 'info'
-                  ? 'bg-white text-slate-900 shadow-sm'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-white/40'
+                  ? 'bg-white dark:bg-gray-700 text-slate-900 dark:text-white shadow-sm'
+                  : 'text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
               {t('personalInfo', 'Personal Info')}
@@ -250,165 +261,49 @@ export default function Profile() {
             <button
               type="button"
               onClick={() => setActiveTab('password')}
-              className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 ${
+              className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 cursor-pointer ${
                 activeTab === 'password'
-                  ? 'bg-white text-slate-900 shadow-sm'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-white/40'
+                  ? 'bg-white dark:bg-gray-700 text-slate-900 dark:text-white shadow-sm'
+                  : 'text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
               {t('security', 'Security')}
-=======
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
-
-const Profile = () => {
-  const navigate = useNavigate();
-  const { user, logoutUser } = useAuth();
-
-  const handleLogout = async () => {
-    try {
-      if (logoutUser) {
-        await logoutUser();
-      }
-      localStorage.removeItem('token');
-      navigate('/login', { replace: true });
-    } catch (error) {
-      console.error("Logout failed:", error);
-    }
-  };
-
-  return (
-    <div className="min-h-screen bg-[#F7F5F0] dark:bg-[#0F172A] text-[#1F2937] dark:text-white px-4 py-8 font-['Inter'] transition-colors duration-300">
-      <div className="max-w-4xl mx-auto space-y-6">
-        
-        {/* Page Title */}
-        <h1 className="text-2xl font-bold font-['Poppins'] text-[#17233C] dark:text-white">
-          My Profile
-        </h1>
-
-        {/* 1. Account Info Section */}
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-[#E5E7EB] dark:border-gray-700 p-6 space-y-6">
-          
-          <div className="flex items-start justify-between">
-            {/* Left side: Avatar + Name, Email, and Customer text */}
-            <div className="flex items-center gap-4">
-              <div className="w-16 h-16 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center text-gray-500 dark:text-gray-300 text-2xl shrink-0">
-                <i className="fa-solid fa-user"></i>
-              </div>
-              <div className="space-y-0.5">
-                <h2 className="text-lg font-bold text-[#17233C] dark:text-white uppercase tracking-wide">
-                  {user?.name || 'CUSTOMER'}
-                </h2>
-                <p className="text-xs text-[#7B8190] dark:text-gray-400">
-                  {user?.email || 'customer@koda.com'}
-                </p>
-                <p className="text-xs font-semibold text-[#E89A5B]">
-                  Customer
-                </p>
-              </div>
-            </div>
-
-            {/* Edit Profile Button on the right or top */}
-            
-          </div>
-
-          {/* Email and Phone details placed before/above edit section structure */}
-          <div className="space-y-3 text-xs text-[#7B8190] dark:text-gray-400 pt-2">
-            <div className="flex items-center gap-2">
-              <i className="fa-regular fa-envelope"></i>
-              <span>{user?.email || 'customer@koda.com'}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <i className="fa-solid fa-phone"></i>
-              <span>Not set</span>
-            </div>
-            <button className="bg-[#17233C] hover:bg-[#E89A5B] text-white text-xs font-semibold px-5 py-2.5 rounded-xl transition-all duration-300 shadow-sm cursor-pointer mt-4">
-              Edit Profile
-            </button>
-           
-          </div>
-        </div>
-
-        {/* 2. Addresses Section */}
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-[#E5E7EB] dark:border-gray-700 p-6 space-y-4">
-          <div className="flex items-center gap-2 border-b border-[#E5E7EB] dark:border-gray-700 pb-3">
-            <i className="fa-solid fa-location-dot text-[#E89A5B]"></i>
-            <h2 className="text-sm font-bold text-[#17233C] dark:text-white">Addresses</h2>
-          </div>
-          
-          <p className="text-xs text-[#7B8190] dark:text-gray-400">No addresses yet.</p>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2">
-            <input 
-              type="text" 
-              placeholder="Country" 
-              className="bg-transparent border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 text-xs outline-none focus:border-[#17233C] dark:focus:border-[#E89A5B] dark:text-white"
-            />
-            <input 
-              type="text" 
-              placeholder="City" 
-              className="bg-transparent border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 text-xs outline-none focus:border-[#17233C] dark:focus:border-[#E89A5B] dark:text-white"
-            />
-            <input 
-              type="text" 
-              placeholder="Street" 
-              className="bg-transparent border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 text-xs outline-none focus:border-[#17233C] dark:focus:border-[#E89A5B] dark:text-white"
-            />
-            <input 
-              type="text" 
-              placeholder="Building" 
-              className="bg-transparent border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 text-xs outline-none focus:border-[#17233C] dark:focus:border-[#E89A5B] dark:text-white"
-            />
-            <input 
-              type="text" 
-              placeholder="Postal code" 
-              className="bg-transparent border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 text-xs outline-none md:col-span-2 focus:border-[#17233C] dark:focus:border-[#E89A5B] dark:text-white"
-            />
-          </div>
-
-          <div>
-            <button className="bg-[#17233C] hover:bg-[#E89A5B] text-white text-xs font-semibold px-6 py-2.5 rounded-xl transition-all duration-300 flex items-center gap-1.5 cursor-pointer shadow-sm">
-              <i className="fa-solid fa-plus text-[10px]"></i>
-              <span>Add Address</span>
->>>>>>> upstream/develop
             </button>
           </div>
         </div>
 
-<<<<<<< HEAD
         {/* تبويب 1: البيانات الشخصية */}
         {activeTab === 'info' && (
-          <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
-            <div className="px-6 py-5 sm:px-8 border-b border-slate-100 bg-slate-50/40">
-              <h2 className="text-base font-semibold text-slate-900">{t('editInfo', 'Edit Account Details')}</h2>
-              <p className="text-xs text-slate-500 mt-0.5">{t('editInfoSub', 'Update username or delivery phone number.')}</p>
+          <div className="bg-white dark:bg-gray-800 rounded-2xl border border-slate-200/80 dark:border-gray-700 shadow-sm overflow-hidden">
+            <div className="px-6 py-5 sm:px-8 border-b border-slate-100 dark:border-gray-700 bg-slate-50/40 dark:bg-gray-800/50">
+              <h2 className="text-base font-semibold text-slate-900 dark:text-white">{t('editInfo', 'Edit Account Details')}</h2>
+              <p className="text-xs text-slate-500 dark:text-gray-400 mt-0.5">{t('editInfoSub', 'Update username or delivery phone number.')}</p>
             </div>
 
             <form onSubmit={handleUpdateProfile} className="p-6 sm:p-8 space-y-6">
               <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
                 <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-2">
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-gray-300 mb-2">
                     {t('username', 'Username')}
                   </label>
                   <input
                     type="text"
                     value={userData.username}
                     onChange={(e) => setUserData({ ...userData, username: e.target.value })}
-                    className="w-full px-4 py-2.5 text-sm bg-slate-50/50 border border-slate-200 rounded-xl focus:bg-white focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 outline-none transition font-medium"
+                    className="w-full px-4 py-2.5 text-sm bg-slate-50/50 dark:bg-gray-900 border border-slate-200 dark:border-gray-700 rounded-xl focus:bg-white dark:focus:bg-gray-900 text-slate-900 dark:text-white outline-none transition font-medium"
                     placeholder={t('username', 'Username')}
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-2">
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-gray-300 mb-2">
                     {t('phone', 'Phone Number')}
                   </label>
                   <input
                     type="tel"
                     value={userData.phone}
                     onChange={(e) => setUserData({ ...userData, phone: e.target.value })}
-                    className="w-full px-4 py-2.5 text-sm bg-slate-50/50 border border-slate-200 rounded-xl focus:bg-white focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 outline-none transition font-medium text-left"
+                    className="w-full px-4 py-2.5 text-sm bg-slate-50/50 dark:bg-gray-900 border border-slate-200 dark:border-gray-700 rounded-xl focus:bg-white dark:focus:bg-gray-900 text-slate-900 dark:text-white outline-none transition font-medium text-left"
                     dir="ltr"
                     placeholder="+20 100 000 0000"
                   />
@@ -419,11 +314,9 @@ const Profile = () => {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-xl shadow-sm transition disabled:opacity-50 flex items-center gap-2"
+                  className="px-6 py-2.5 bg-[#17233C] hover:bg-[#E89A5B] text-white text-sm font-semibold rounded-xl shadow-sm transition disabled:opacity-50 flex items-center gap-2 cursor-pointer"
                 >
-                  {loading && (
-                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  )}
+                  {loading && <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
                   {loading ? t('saving', 'Saving...') : t('save', 'Save Changes')}
                 </button>
               </div>
@@ -433,16 +326,16 @@ const Profile = () => {
 
         {/* تبويب 2: الأمان وكلمة المرور */}
         {activeTab === 'password' && (
-          <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
-            <div className="px-6 py-5 sm:px-8 border-b border-slate-100 bg-slate-50/40">
-              <h2 className="text-base font-semibold text-slate-900">{t('updatePassword', 'Update Password')}</h2>
-              <p className="text-xs text-slate-500 mt-0.5">{t('updatePasswordSub', 'Verification code sent to your registered email.')}</p>
+          <div className="bg-white dark:bg-gray-800 rounded-2xl border border-slate-200/80 dark:border-gray-700 shadow-sm overflow-hidden">
+            <div className="px-6 py-5 sm:px-8 border-b border-slate-100 dark:border-gray-700 bg-slate-50/40 dark:bg-gray-800/50">
+              <h2 className="text-base font-semibold text-slate-900 dark:text-white">{t('updatePassword', 'Update Password')}</h2>
+              <p className="text-xs text-slate-500 dark:text-gray-400 mt-0.5">{t('updatePasswordSub', 'Verification code sent to your registered email.')}</p>
             </div>
 
             <div className="p-6 sm:p-8 max-w-xl">
               {!otpSent ? (
                 <div className="space-y-4">
-                  <p className="text-sm text-slate-600 leading-relaxed">
+                  <p className="text-sm text-slate-600 dark:text-gray-300 leading-relaxed">
                     {t('otpExplain', 'We will send a one-time verification code to verify your identity.')}
                   </p>
 
@@ -450,30 +343,28 @@ const Profile = () => {
                     type="button"
                     onClick={handleSendOtp}
                     disabled={loading}
-                    className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-xl transition disabled:opacity-50 flex items-center gap-2"
+                    className="px-6 py-2.5 bg-[#17233C] hover:bg-[#E89A5B] text-white text-sm font-semibold rounded-xl transition disabled:opacity-50 flex items-center gap-2 cursor-pointer"
                   >
-                    {loading && (
-                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    )}
+                    {loading && <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
                     {loading ? t('sendingOtp', 'Sending code...') : t('sendOtp', 'Send Verification Code')}
                   </button>
                 </div>
               ) : (
                 <form onSubmit={handleConfirmReset} className="space-y-5">
-                  <div className="p-3 bg-blue-50 border border-blue-100 text-blue-900 text-xs rounded-xl flex items-center justify-between">
+                  <div className="p-3 bg-blue-50 dark:bg-blue-950/40 border border-blue-100 dark:border-blue-800 text-blue-900 dark:text-blue-200 text-xs rounded-xl flex items-center justify-between">
                     <span>{t('otpSentSuccess', 'Verification code sent')}</span>
                     <button
                       type="button"
                       onClick={handleSendOtp}
                       disabled={loading}
-                      className="text-blue-700 hover:text-blue-900 font-semibold underline"
+                      className="text-blue-700 dark:text-blue-300 hover:underline font-semibold cursor-pointer"
                     >
                       {t('resend', 'Resend')}
                     </button>
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-2">
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-gray-300 mb-2">
                       {t('otpCode', 'Verification Code (OTP)')}
                     </label>
                     <input
@@ -482,13 +373,13 @@ const Profile = () => {
                       value={otp}
                       onChange={(e) => setOtp(e.target.value.trim())}
                       placeholder="• • • • • •"
-                      className="w-full text-center font-mono tracking-[0.5em] text-xl font-bold py-2.5 bg-slate-50/50 border border-slate-200 rounded-xl focus:bg-white focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 outline-none transition"
+                      className="w-full text-center font-mono tracking-[0.5em] text-xl font-bold py-2.5 bg-slate-50/50 dark:bg-gray-900 border border-slate-200 dark:border-gray-700 text-slate-900 dark:text-white rounded-xl outline-none transition"
                       required
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-2">
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-gray-300 mb-2">
                       {t('newPassword', 'New Password')}
                     </label>
                     <input
@@ -496,13 +387,13 @@ const Profile = () => {
                       value={newPassword}
                       onChange={(e) => setNewPassword(e.target.value)}
                       placeholder="••••••••"
-                      className="w-full px-4 py-2.5 text-sm bg-slate-50/50 border border-slate-200 rounded-xl focus:bg-white focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 outline-none transition"
+                      className="w-full px-4 py-2.5 text-sm bg-slate-50/50 dark:bg-gray-900 border border-slate-200 dark:border-gray-700 text-slate-900 dark:text-white rounded-xl outline-none transition"
                       required
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-2">
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-gray-300 mb-2">
                       {t('confirmPassword', 'Confirm New Password')}
                     </label>
                     <input
@@ -510,7 +401,7 @@ const Profile = () => {
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       placeholder="••••••••"
-                      className="w-full px-4 py-2.5 text-sm bg-slate-50/50 border border-slate-200 rounded-xl focus:bg-white focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 outline-none transition"
+                      className="w-full px-4 py-2.5 text-sm bg-slate-50/50 dark:bg-gray-900 border border-slate-200 dark:border-gray-700 text-slate-900 dark:text-white rounded-xl outline-none transition"
                       required
                     />
                   </div>
@@ -519,17 +410,15 @@ const Profile = () => {
                     <button
                       type="submit"
                       disabled={loading}
-                      className="flex-1 py-2.5 px-5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-xl transition disabled:opacity-50 flex items-center justify-center gap-2"
+                      className="flex-1 py-2.5 px-5 bg-[#17233C] hover:bg-[#E89A5B] text-white text-sm font-semibold rounded-xl transition disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
                     >
-                      {loading && (
-                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                      )}
+                      {loading && <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
                       {loading ? t('verifying', 'Verifying...') : t('confirmAndSave', 'Confirm & Save')}
                     </button>
                     <button
                       type="button"
                       onClick={() => setOtpSent(false)}
-                      className="py-2.5 px-4 border border-slate-200 text-slate-600 text-sm font-semibold rounded-xl hover:bg-slate-50"
+                      className="py-2.5 px-4 border border-slate-200 dark:border-gray-700 text-slate-600 dark:text-gray-300 text-sm font-semibold rounded-xl hover:bg-slate-50 dark:hover:bg-gray-700 cursor-pointer"
                     >
                       {t('cancel', 'Cancel')}
                     </button>
@@ -539,39 +428,18 @@ const Profile = () => {
             </div>
           </div>
         )}
-=======
-        {/* 3. Change Password Section */}
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-[#E5E7EB] dark:border-gray-700 p-6 space-y-4">
-          <div className="flex items-center gap-2 border-b border-[#E5E7EB] dark:border-gray-700 pb-3">
-            <i className="fa-solid fa-lock text-[#E89A5B]"></i>
-            <h2 className="text-sm font-bold text-[#17233C] dark:text-white">Change Password</h2>
-          </div>
-          <div>
-            <button className="border border-[#17233C] dark:border-gray-600 text-[#17233C] dark:text-white hover:bg-[#17233C] hover:text-white dark:hover:bg-gray-700 text-xs font-semibold px-6 py-2.5 rounded-xl transition-all duration-200 cursor-pointer">
-              Change Password
-            </button>
-          </div>
-        </div>
 
-        {/* 4. Long Red Logout Button at the bottom */}
-        <div>
+        {/* زر تسجيل الخروج الطويل المضاف من الفرع المشترك */}
+        <div className="pt-2">
           <button
+            type="button"
             onClick={handleLogout}
-            className="w-full bg-red-500 hover:bg-red-600 text-white transition-all py-3 rounded-xl text-xs font-bold tracking-wider cursor-pointer shadow-sm hover:shadow flex items-center justify-center gap-2"
+            className="w-full bg-red-500 hover:bg-red-600 text-white transition-all py-3.5 rounded-xl text-sm font-bold tracking-wider cursor-pointer shadow-sm hover:shadow flex items-center justify-center gap-2"
           >
-            <i className="fa-solid fa-right-from-bracket text-sm"></i>
-            <span>Logout</span>
+            <span>{t('logout', 'Logout')}</span>
           </button>
         </div>
->>>>>>> upstream/develop
-
       </div>
     </div>
   );
-<<<<<<< HEAD
 }
-=======
-};
-
-export default Profile;
->>>>>>> upstream/develop
