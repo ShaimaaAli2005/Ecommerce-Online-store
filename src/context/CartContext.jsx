@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import toast from 'react-hot-toast';
 import {
   getCartApi,
@@ -10,14 +10,29 @@ import {
 
 export const CartContext = createContext();
 
+const getImg = (prod) => {
+  if (!prod) return '';
+  if (Array.isArray(prod.images) && prod.images.length > 0) {
+    return prod.images[0]?.url || prod.images[0];
+  }
+  return prod.image || prod.imageUrl || '';
+};
+
 export const CartProvider = ({ children }) => {
-  const [items, setItems] = useState([]);
+  const [items, setItems] = useState(() => {
+    try {
+      const saved = localStorage.getItem('cart_items');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+
   const [cartTotal, setCartTotal] = useState(0);
   const [cartCount, setCartCount] = useState(0);
   const [loading, setLoading] = useState(false);
 
-  // دالة مساعدة لحساب الإجماليات محلياً
-  const recalculateCart = (currentItems) => {
+  const recalculateCart = useCallback((currentItems) => {
     const total = currentItems.reduce(
       (acc, item) => acc + (Number(item.price) || 0) * (Number(item.quantity) || 1),
       0
@@ -28,92 +43,92 @@ export const CartProvider = ({ children }) => {
     );
     setCartTotal(total);
     setCartCount(count);
-  };
+    localStorage.setItem('cart_items', JSON.stringify(currentItems));
+  }, []);
 
-  const fetchCart = async () => {
-    setLoading(true);
+  useEffect(() => {
+    recalculateCart(items);
+  }, [items, recalculateCart]);
+
+  const fetchCart = useCallback(async () => {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
     try {
+      setLoading(true);
       const data = await getCartApi();
-      const cartItems = data.items || data.cart?.items || [];
-      const total = data.total !== undefined ? data.total : (data.subtotal || data.cart?.total || 0);
-      const count = data.itemCount !== undefined 
-        ? data.itemCount 
-        : cartItems.reduce((acc, item) => acc + (item.quantity || 1), 0);
-
-      setItems(cartItems);
-      setCartTotal(total);
-      setCartCount(count);
-    } catch (error) {
-      console.warn('Backend fetch cart failed, using local cart state.');
+      const cartItems = data.items || data.cart?.items || data.products || (Array.isArray(data) ? data : []);
+      if (Array.isArray(cartItems) && cartItems.length > 0) {
+        setItems(cartItems);
+      }
+    } catch {
+      console.warn('Backend cart endpoint unavailable, maintaining local cart.');
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchCart();
-  }, []);
+  }, [fetchCart]);
 
   const addToCart = async (product, quantity = 1) => {
-    const productId = typeof product === 'object' ? (product.id || product._id) : product;
+    const productId = typeof product === 'object' ? (product._id || product.id) : product;
     const productName = typeof product === 'object' ? (product.name || product.title || 'Product') : 'Product';
-    const productPrice = typeof product === 'object' ? (product.price || 0) : 0;
-    const productImage = typeof product === 'object' ? (product.image || product.imageUrl || '') : '';
+    const productPrice = typeof product === 'object' 
+      ? (product.discountPrice && product.discountPrice < product.price ? product.discountPrice : product.price) 
+      : 0;
+    const productImage = getImg(product);
 
     if (!productId) {
-      toast.error('Product ID missing');
+      toast.error('Product ID missing', { id: 'cart-toast' });
       return;
     }
 
-    try {
-      // المحاولة الأولى: عبر انبوينت الباك إند
-      await addToCartApi(productId, quantity);
-      await fetchCart();
-      toast.success(`${productName} added to cart!`);
-    } catch (error) {
-      console.warn('Backend API addToCart failed. Falling back to local cart state:', error);
-      
-      // المحاولة الثانية الاحتياطية (Local State Fallback)
-      setItems((prevItems) => {
-        const existingIndex = prevItems.findIndex(
-          (item) => (item.id || item._id) === productId
+    setItems((prevItems) => {
+      const existingIndex = prevItems.findIndex(
+        (item) => (item._id || item.id) === productId
+      );
+      if (existingIndex > -1) {
+        return prevItems.map((item, idx) =>
+          idx === existingIndex
+            ? { ...item, quantity: (item.quantity || 1) + quantity }
+            : item
         );
-        let updatedItems;
-        if (existingIndex > -1) {
-          updatedItems = prevItems.map((item, idx) =>
-            idx === existingIndex
-              ? { ...item, quantity: (item.quantity || 1) + quantity }
-              : item
-          );
-        } else {
-          const newItem = typeof product === 'object'
-            ? { ...product, id: productId, quantity }
-            : { id: productId, name: productName, price: productPrice, image: productImage, quantity };
-          updatedItems = [...prevItems, newItem];
-        }
-        recalculateCart(updatedItems);
-        return updatedItems;
-      });
+      }
+      const newItem = {
+        ...(typeof product === 'object' ? product : {}),
+        _id: productId,
+        id: productId,
+        name: productName,
+        price: productPrice,
+        image: productImage,
+        quantity,
+      };
+      return [...prevItems, newItem];
+    });
 
-      toast.success(`${productName} added to cart!`);
+    toast.success(`${productName} added to cart!`, { id: 'cart-toast' });
+
+    // إرسال الكائن بالصيغة القياسية المطلوبة في Swagger
+    try {
+      await addToCartApi({
+        productId: String(productId),
+        quantity: Number(quantity),
+      });
+    } catch {
+      // الاعتماد على التحديث المحلي الفوري
     }
   };
 
   const removeFromCart = async (productId) => {
+    setItems((prevItems) => prevItems.filter((item) => (item._id || item.id) !== productId));
+    toast.success('Item removed from cart', { id: 'cart-toast' });
+
     try {
       await removeFromCartApi(productId);
-      await fetchCart();
-      toast.success('Item removed from cart');
-    } catch (error) {
-      console.warn('Backend API removeFromCart failed, removing locally:', error);
-      setItems((prevItems) => {
-        const updatedItems = prevItems.filter(
-          (item) => (item.id || item._id) !== productId
-        );
-        recalculateCart(updatedItems);
-        return updatedItems;
-      });
-      toast.success('Item removed from cart');
+    } catch {
+      // الاعتماد على التحديث المحلي
     }
   };
 
@@ -122,31 +137,34 @@ export const CartProvider = ({ children }) => {
       await removeFromCart(productId);
       return;
     }
+
+    setItems((prevItems) =>
+      prevItems.map((item) =>
+        (item._id || item.id) === productId ? { ...item, quantity } : item
+      )
+    );
+
     try {
-      await updateCartQuantityApi(productId, quantity);
-      await fetchCart();
-    } catch (error) {
-      console.warn('Backend API updateQuantity failed, updating locally:', error);
-      setItems((prevItems) => {
-        const updatedItems = prevItems.map((item) =>
-          (item.id || item._id) === productId ? { ...item, quantity } : item
-        );
-        recalculateCart(updatedItems);
-        return updatedItems;
+      await updateCartQuantityApi({
+        productId: String(productId),
+        quantity: Number(quantity),
       });
+    } catch {
+      // الاعتماد على التحديث المحلي
     }
   };
 
   const clearCart = async () => {
+    setItems([]);
+    setCartTotal(0);
+    setCartCount(0);
+    localStorage.removeItem('cart_items');
+    toast.success('Cart cleared', { id: 'cart-toast' });
+
     try {
       await clearCartApi();
-    } catch (error) {
-      console.warn('Backend API clearCart failed, clearing locally:', error);
-    } finally {
-      setItems([]);
-      setCartTotal(0);
-      setCartCount(0);
-      toast.success('Cart cleared');
+    } catch {
+      // الاعتماد على التحديث المحلي
     }
   };
 
@@ -175,4 +193,4 @@ export const useCart = () => {
     throw new Error('useCart must be used within a CartProvider');
   }
   return context;
-};
+};

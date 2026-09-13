@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'https://e-commerce-api-3wara.vercel.app',
+  baseURL: import.meta.env.VITE_API_URL || 'https://e-commerce-api-3wara.vercel.app',
 });
 
 api.interceptors.request.use((config) => {
@@ -18,7 +18,7 @@ api.interceptors.response.use(
     if (error.response?.status === 401) {
       localStorage.removeItem('token');
       if (!window.location.pathname.startsWith('/login')) {
-        window.history.replaceState(null, '', '/login');
+        window.location.href = '/login';
       }
     }
     return Promise.reject(error);

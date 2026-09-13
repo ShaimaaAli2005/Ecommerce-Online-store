@@ -39,7 +39,10 @@ export const verifyRegisterOtp = async (payload) => {
 
 // إرسال كود استعادة كلمة المرور
 export const sendForgotPasswordOtp = async (payload) => {
-  const response = await api.post('/auth/forgot-password/send-otp', payload);
+  const email = typeof payload === 'string' ? payload : payload?.email;
+  const response = await api.post('/auth/forgot-password/send-otp', {
+    email: String(email || '').trim().toLowerCase(),
+  });
   return response.data;
 };
 
@@ -48,6 +51,19 @@ export const forgotPasswordApi = sendForgotPasswordOtp;
 
 // تأكيد كود استعادة كلمة المرور وتعيين الجديدة
 export const verifyForgotPasswordOtp = async (payload) => {
-  const response = await api.post('/auth/forgot-password/verify-otp', payload);
+  // استخراج القيم وتنظيفها
+  const email = String(payload?.email || '').trim().toLowerCase();
+  const rawOtp = payload?.otp || payload?.resetCode || '';
+  const otp = String(rawOtp).trim().replace(/\s+/g, '');
+  const newPassword = payload?.newPassword || payload?.password;
+
+  // إرسال الحقول التي يشترطها الباك إند بالضبط وحجب "password" منعاً لرفض السيرفر
+  const cleanPayload = {
+    email,
+    otp,
+    newPassword,
+  };
+
+  const response = await api.post('/auth/forgot-password/verify-otp', cleanPayload);
   return response.data;
 };

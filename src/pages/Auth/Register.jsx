@@ -11,7 +11,10 @@ const Register = () => {
   const currentLang = i18n.language || 'en';
   const isRtl = currentLang === 'ar';
 
-  // خطوة التسجيل: 'form' لإدخال البيانات، 'otp' لإدخال رمز التحقق
+  const [isDark, setIsDark] = useState(() => {
+    return document.documentElement.classList.contains('dark') || localStorage.getItem('theme') === 'dark';
+  });
+
   const [step, setStep] = useState('form');
 
   const [formData, setFormData] = useState({
@@ -30,13 +33,53 @@ const Register = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
+  const [resendTimer, setResendTimer] = useState(60);
+  const [canResend, setCanResend] = useState(false);
+
   const timerRef = useRef(null);
+  const countdownRef = useRef(null);
+
+  useEffect(() => {
+    if (step === 'otp') {
+      setResendTimer(60);
+      setCanResend(false);
+
+      if (countdownRef.current) clearInterval(countdownRef.current);
+
+      countdownRef.current = setInterval(() => {
+        setResendTimer((prev) => {
+          if (prev <= 1) {
+            clearInterval(countdownRef.current);
+            setCanResend(true);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+
+    return () => {
+      if (countdownRef.current) clearInterval(countdownRef.current);
+    };
+  }, [step]);
 
   useEffect(() => {
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current);
     };
   }, []);
+
+  const toggleTheme = () => {
+    const newTheme = !isDark;
+    setIsDark(newTheme);
+    if (newTheme) {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+    }
+  };
 
   const toggleLanguage = () => {
     const nextLang = currentLang === 'en' ? 'ar' : 'en';
@@ -60,13 +103,13 @@ const Register = () => {
   const validate = () => {
     const newErrors = {};
     if (!formData.fullName.trim()) {
-      newErrors.fullName = t('errors.fullNameRequired') || (isRtl ? 'الاسم مطلوب' : 'Full name is required');
+      newErrors.fullName = t('errors.fullNameRequired');
     }
 
     if (!formData.email.trim()) {
-      newErrors.email = t('errors.emailRequired') || (isRtl ? 'البريد الإلكتروني مطلوب' : 'Email is required');
+      newErrors.email = t('errors.emailRequired');
     } else if (!/\S+@\S+\.\S+/.test(formData.email.trim())) {
-      newErrors.email = t('errors.emailInvalid') || (isRtl ? 'صيغة البريد غير صحيحة' : 'Invalid email format');
+      newErrors.email = t('errors.emailInvalid');
     }
 
     if (!formData.phone.trim()) {
@@ -74,25 +117,24 @@ const Register = () => {
     }
 
     if (!formData.password) {
-      newErrors.password = t('errors.passwordRequired') || (isRtl ? 'كلمة المرور مطلوبة' : 'Password is required');
+      newErrors.password = t('errors.passwordRequired');
     } else if (formData.password.length < 6) {
-      newErrors.password = t('errors.passwordMin') || (isRtl ? 'يجب أن لا تقل عن 6 أحرف' : 'Must be at least 6 characters');
+      newErrors.password = t('errors.passwordMin');
     }
 
     if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = t('errors.passwordMismatch') || (isRtl ? 'كلمات المرور غير متطابقة' : 'Passwords do not match');
+      newErrors.confirmPassword = t('errors.passwordMismatch');
     }
 
     if (!formData.agreeTerms) {
-      newErrors.agreeTerms = t('errors.termsRequired') || (isRtl ? 'يرجى الموافقة على الشروط' : 'Please accept terms');
+      newErrors.agreeTerms = t('errors.termsRequired');
     }
 
     return newErrors;
   };
 
-  // المرحلة 1: إرسال كود الـ OTP
   const handleSubmit = async (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
     const validationErrors = validate();
 
     if (Object.keys(validationErrors).length > 0) {
@@ -103,7 +145,6 @@ const Register = () => {
     setIsLoading(true);
 
     try {
-      // إرسال الحقول بالمسميات الدقيقة التي يطلبها السيرفر
       const payload = {
         username: formData.fullName.trim(),
         email: formData.email.trim(),
@@ -124,7 +165,45 @@ const Register = () => {
     }
   };
 
-  // المرحلة 2: التحقق من كود الـ OTP وتفعيل الحساب
+  const handleResendOtp = async () => {
+    if (!canResend || isLoading) return;
+
+    setIsLoading(true);
+    try {
+      const payload = {
+        username: formData.fullName.trim(),
+        email: formData.email.trim(),
+        password: formData.password,
+        phone: formData.phone.trim(),
+      };
+
+      const res = await sendRegisterOtp(payload);
+      toast.success(res.message || (isRtl ? 'تمت إعادة إرسال كود التحقق' : 'OTP resent successfully'));
+      
+      setResendTimer(60);
+      setCanResend(false);
+
+      if (countdownRef.current) clearInterval(countdownRef.current);
+      countdownRef.current = setInterval(() => {
+        setResendTimer((prev) => {
+          if (prev <= 1) {
+            clearInterval(countdownRef.current);
+            setCanResend(true);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    } catch (err) {
+      const errorMsg =
+        err.response?.data?.message ||
+        (isRtl ? 'تعذر إعادة إرسال الكود حالياً' : 'Failed to resend OTP');
+      toast.error(errorMsg);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleVerifyOtp = async (e) => {
     e.preventDefault();
     if (!otp.trim() || otp.trim().length !== 6) {
@@ -158,30 +237,41 @@ const Register = () => {
     timerRef.current = setTimeout(() => {
       localStorage.setItem('token', 'sample-google-oauth-token-999');
       setIsGoogleLoading(false);
-      navigate('/wishlist', { replace: true });
+      navigate('/shop', { replace: true });
     }, 800);
   };
 
   return (
     <div
       dir={isRtl ? 'rtl' : 'ltr'}
-      className="min-h-screen w-full bg-[#F7F5F0] flex flex-col justify-center items-center p-0 md:p-6 lg:p-10 font-['Inter'] relative select-none"
+      className="min-h-screen w-full bg-[#F7F5F0] dark:bg-[#0F172A] flex flex-col justify-center items-center p-0 md:p-6 lg:p-10 font-['Inter'] relative select-none transition-colors duration-300"
     >
-      {/* زر تبديل اللغة */}
-      <div className="fixed top-5 right-6 z-50">
+      {/* شريط التحكم العلوي: زر الثيم وزر اللغة */}
+      <div className="fixed top-5 right-6 z-50 flex items-center gap-2" dir="ltr">
+        
+
         <button
           type="button"
           onClick={toggleLanguage}
-          className="flex items-center gap-2 backdrop-blur-md bg-white/80 border border-[#E5E7EB] hover:border-[#17233C] px-3.5 py-1.5 rounded-full text-xs font-semibold text-[#17233C] shadow-sm hover:shadow transition-all duration-200 cursor-pointer"
+          className="flex items-center gap-2 backdrop-blur-md bg-white/80 dark:bg-gray-800/80 border border-[#E5E7EB] dark:border-gray-700 hover:border-[#17233C] dark:hover:border-[#E89A5B] px-3.5 py-1.5 rounded-full text-xs font-semibold text-[#17233C] dark:text-gray-200 shadow-sm transition cursor-pointer"
         >
           <span className="w-2 h-2 rounded-full bg-[#E89A5B]"></span>
           <span>{t('switchLang')}</span>
         </button>
+
+        <button
+          type="button"
+          onClick={toggleTheme}
+          aria-label="Toggle theme"
+          className="w-9 h-9 rounded-full backdrop-blur-md bg-white/80 dark:bg-gray-800/80 border border-[#E5E7EB] dark:border-gray-700 text-[#17233C] dark:text-[#E89A5B] flex items-center justify-center shadow-sm hover:scale-105 transition cursor-pointer"
+        >
+          {isDark ? '☀️' : '🌙'}
+        </button>
       </div>
 
-      <div className="w-full max-w-5xl bg-white md:rounded-3xl shadow-[0_20px_60px_-15px_rgba(23,35,60,0.08)] border border-[#EBE8E1] overflow-hidden flex flex-col md:flex-row min-h-[680px]">
+      <div className="w-full max-w-5xl bg-white dark:bg-gray-800 md:rounded-3xl shadow-[0_20px_60px_-15px_rgba(23,35,60,0.08)] border border-[#EBE8E1] dark:border-gray-700 overflow-hidden flex flex-col md:flex-row min-h-[680px] transition-colors duration-300">
         
-        {/* الجانب البصري الفاخر - Register */}
+        {/* الجانب البصري */}
         <div className="relative md:w-5/12 bg-[#0B132B] text-white p-8 md:p-12 flex flex-col justify-between overflow-hidden">
           <div className="absolute inset-0 z-0 overflow-hidden">
             <img
@@ -201,7 +291,7 @@ const Register = () => {
             <div className="h-1 w-10 bg-[#E89A5B] mt-2 rounded-full shadow-sm"></div>
           </div>
 
-          <div className="relative z-10 my-8 backdrop-blur-[2px] bg-black/15 p-4 rounded-2xl border border-white/10">
+          <div className="relative z-10 my-8 backdrop-blur-[2px] bg-black/25 p-4 rounded-2xl border border-white/10">
             <span className="text-[11px] font-bold tracking-widest text-[#E89A5B] uppercase block mb-2 drop-shadow-sm">
               {t('register.showcase.tagline')}
             </span>
@@ -225,15 +315,15 @@ const Register = () => {
           </div>
         </div>
 
-        {/* الجانب الأيمن: النموذج */}
-        <div className="md:w-7/12 p-8 sm:p-12 lg:p-14 flex flex-col justify-center bg-white">
+        {/* الجانب الأيمن */}
+        <div className="md:w-7/12 p-8 sm:p-12 lg:p-14 flex flex-col justify-center bg-white dark:bg-gray-800 transition-colors duration-300">
           <div className="max-w-md w-full mx-auto">
             
             <div className="mb-5">
-              <h2 className="text-2xl sm:text-3xl font-bold text-[#17233C] tracking-tight font-['Poppins']">
+              <h2 className="text-2xl sm:text-3xl font-bold text-[#17233C] dark:text-white tracking-tight font-['Poppins']">
                 {step === 'form' ? t('register.title') : (isRtl ? 'تأكيد البريد الإلكتروني' : 'Verify Email')}
               </h2>
-              <p className="text-sm text-[#7B8190] mt-1 leading-relaxed">
+              <p className="text-sm text-[#7B8190] dark:text-gray-400 mt-1 leading-relaxed">
                 {step === 'form' 
                   ? t('register.subtitle') 
                   : (isRtl ? `أدخل رمز التحقق (OTP) المرسل إلى ${formData.email}` : `Enter the 6-digit OTP sent to ${formData.email}`)}
@@ -242,15 +332,14 @@ const Register = () => {
 
             {step === 'form' ? (
               <>
-                {/* زر تسجيل الحساب بواسطة Google */}
                 <button
                   type="button"
                   onClick={handleGoogleSignup}
                   disabled={isGoogleLoading || isLoading}
-                  className="w-full bg-white hover:bg-[#F9FAFB] border border-[#E5E7EB] hover:border-[#D1D5DB] text-[#1F2937] py-2.5 px-4 rounded-xl text-xs sm:text-sm font-medium transition-all duration-200 shadow-xs flex items-center justify-center gap-3 cursor-pointer disabled:opacity-60"
+                  className="w-full bg-white dark:bg-gray-700/50 hover:bg-[#F9FAFB] dark:hover:bg-gray-700 border border-[#E5E7EB] dark:border-gray-600 text-[#1F2937] dark:text-white py-2.5 px-4 rounded-xl text-xs sm:text-sm font-medium transition-all duration-200 shadow-xs flex items-center justify-center gap-3 cursor-pointer disabled:opacity-60"
                 >
                   {isGoogleLoading ? (
-                    <svg className="animate-spin h-4 w-4 text-[#17233C]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <svg className="animate-spin h-4 w-4 text-[#17233C] dark:text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
@@ -265,20 +354,18 @@ const Register = () => {
                   <span>{t('register.googleBtn')}</span>
                 </button>
 
-                {/* خط فاصل أنيق */}
                 <div className="relative my-4 text-center">
                   <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t border-[#EBE8E1]"></div>
+                    <div className="w-full border-t border-[#EBE8E1] dark:border-gray-700"></div>
                   </div>
-                  <span className="relative bg-white px-3 text-xs text-[#9CA3AF]">
+                  <span className="relative bg-white dark:bg-gray-800 px-3 text-xs text-[#9CA3AF] dark:text-gray-400">
                     {t('register.showcase.orDivider')}
                   </span>
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-3.5">
-                  {/* الاسم الكامل (username في الـ API) */}
                   <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-[#1F2937] mb-1">
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-[#1F2937] dark:text-gray-300 mb-1">
                       {t('register.fullNameLabel')}
                     </label>
                     <input
@@ -287,10 +374,10 @@ const Register = () => {
                       value={formData.fullName}
                       onChange={handleChange}
                       placeholder={t('register.fullNamePlaceholder')}
-                      className={`w-full px-4 py-2.5 rounded-xl border text-sm outline-none transition-all duration-200 bg-[#FAFAFA] focus:bg-white ${
+                      className={`w-full px-4 py-2.5 rounded-xl border text-sm outline-none transition-all duration-200 bg-[#FAFAFA] dark:bg-gray-900 dark:text-white ${
                         errors.fullName
                           ? 'border-[#C95C5C] focus:ring-2 focus:ring-[#C95C5C]/20'
-                          : 'border-[#E5E7EB] focus:border-[#17233C] focus:ring-4 focus:ring-[#17233C]/5'
+                          : 'border-[#E5E7EB] dark:border-gray-700 focus:border-[#17233C] dark:focus:border-[#E89A5B]'
                       }`}
                     />
                     {errors.fullName && (
@@ -300,9 +387,8 @@ const Register = () => {
                     )}
                   </div>
 
-                  {/* البريد الإلكتروني */}
                   <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-[#1F2937] mb-1">
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-[#1F2937] dark:text-gray-300 mb-1">
                       {t('register.emailLabel')}
                     </label>
                     <input
@@ -311,10 +397,10 @@ const Register = () => {
                       value={formData.email}
                       onChange={handleChange}
                       placeholder={t('register.emailPlaceholder')}
-                      className={`w-full px-4 py-2.5 rounded-xl border text-sm outline-none transition-all duration-200 bg-[#FAFAFA] focus:bg-white ${
+                      className={`w-full px-4 py-2.5 rounded-xl border text-sm outline-none transition-all duration-200 bg-[#FAFAFA] dark:bg-gray-900 dark:text-white ${
                         errors.email
                           ? 'border-[#C95C5C] focus:ring-2 focus:ring-[#C95C5C]/20'
-                          : 'border-[#E5E7EB] focus:border-[#17233C] focus:ring-4 focus:ring-[#17233C]/5'
+                          : 'border-[#E5E7EB] dark:border-gray-700 focus:border-[#17233C] dark:focus:border-[#E89A5B]'
                       }`}
                     />
                     {errors.email && (
@@ -324,9 +410,8 @@ const Register = () => {
                     )}
                   </div>
 
-                  {/* رقم الهاتف (إجباري حسب Swagger) */}
                   <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-[#1F2937] mb-1">
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-[#1F2937] dark:text-gray-300 mb-1">
                       {isRtl ? 'رقم الهاتف' : 'Phone Number'}
                     </label>
                     <input
@@ -335,10 +420,10 @@ const Register = () => {
                       value={formData.phone}
                       onChange={handleChange}
                       placeholder="+201234567890"
-                      className={`w-full px-4 py-2.5 rounded-xl border text-sm outline-none transition-all duration-200 bg-[#FAFAFA] focus:bg-white ${
+                      className={`w-full px-4 py-2.5 rounded-xl border text-sm outline-none transition-all duration-200 bg-[#FAFAFA] dark:bg-gray-900 dark:text-white ${
                         errors.phone
                           ? 'border-[#C95C5C] focus:ring-2 focus:ring-[#C95C5C]/20'
-                          : 'border-[#E5E7EB] focus:border-[#17233C] focus:ring-4 focus:ring-[#17233C]/5'
+                          : 'border-[#E5E7EB] dark:border-gray-700 focus:border-[#17233C] dark:focus:border-[#E89A5B]'
                       }`}
                     />
                     {errors.phone && (
@@ -348,10 +433,9 @@ const Register = () => {
                     )}
                   </div>
 
-                  {/* كلمتا المرور جنباً إلى جنب */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                     <div>
-                      <label className="block text-xs font-semibold uppercase tracking-wider text-[#1F2937] mb-1">
+                      <label className="block text-xs font-semibold uppercase tracking-wider text-[#1F2937] dark:text-gray-300 mb-1">
                         {t('register.passwordLabel')}
                       </label>
                       <div className="relative">
@@ -361,21 +445,21 @@ const Register = () => {
                           value={formData.password}
                           onChange={handleChange}
                           placeholder="••••••••"
-                          className={`w-full px-3.5 py-2.5 rounded-xl border text-sm outline-none transition-all bg-[#FAFAFA] focus:bg-white ${
+                          className={`w-full px-3.5 py-2.5 rounded-xl border text-sm outline-none transition-all bg-[#FAFAFA] dark:bg-gray-900 dark:text-white ${
                             isRtl ? 'pl-9' : 'pr-9'
                           } ${
                             errors.password
                               ? 'border-[#C95C5C] focus:ring-2 focus:ring-[#C95C5C]/20'
-                              : 'border-[#E5E7EB] focus:border-[#17233C]'
+                              : 'border-[#E5E7EB] dark:border-gray-700 focus:border-[#17233C] dark:focus:border-[#E89A5B]'
                           }`}
                         />
                         <button
                           type="button"
-                          aria-label={showPassword ? "Hide password" : "Show password"}
+                          aria-label={showPassword ? 'Hide password' : 'Show password'}
                           onClick={() => setShowPassword(!showPassword)}
                           className={`absolute top-1/2 -translate-y-1/2 ${
                             isRtl ? 'left-2.5' : 'right-2.5'
-                          } text-xs text-[#7B8190] hover:text-[#17233C] cursor-pointer`}
+                          } text-xs text-[#7B8190] dark:text-gray-400 hover:text-[#17233C] dark:hover:text-white cursor-pointer`}
                         >
                           {showPassword ? '👁️' : '👁️‍🗨️'}
                         </button>
@@ -386,7 +470,7 @@ const Register = () => {
                     </div>
 
                     <div>
-                      <label className="block text-xs font-semibold uppercase tracking-wider text-[#1F2937] mb-1">
+                      <label className="block text-xs font-semibold uppercase tracking-wider text-[#1F2937] dark:text-gray-300 mb-1">
                         {t('register.confirmPasswordLabel')}
                       </label>
                       <div className="relative">
@@ -396,21 +480,21 @@ const Register = () => {
                           value={formData.confirmPassword}
                           onChange={handleChange}
                           placeholder="••••••••"
-                          className={`w-full px-3.5 py-2.5 rounded-xl border text-sm outline-none transition-all bg-[#FAFAFA] focus:bg-white ${
+                          className={`w-full px-3.5 py-2.5 rounded-xl border text-sm outline-none transition-all bg-[#FAFAFA] dark:bg-gray-900 dark:text-white ${
                             isRtl ? 'pl-9' : 'pr-9'
                           } ${
                             errors.confirmPassword
                               ? 'border-[#C95C5C] focus:ring-2 focus:ring-[#C95C5C]/20'
-                              : 'border-[#E5E7EB] focus:border-[#17233C]'
+                              : 'border-[#E5E7EB] dark:border-gray-700 focus:border-[#17233C] dark:focus:border-[#E89A5B]'
                           }`}
                         />
                         <button
                           type="button"
-                          aria-label={showConfirmPassword ? "Hide confirm password" : "Show confirm password"}
+                          aria-label={showConfirmPassword ? 'Hide confirm password' : 'Show confirm password'}
                           onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                           className={`absolute top-1/2 -translate-y-1/2 ${
                             isRtl ? 'left-2.5' : 'right-2.5'
-                          } text-xs text-[#7B8190] hover:text-[#17233C] cursor-pointer`}
+                          } text-xs text-[#7B8190] dark:text-gray-400 hover:text-[#17233C] dark:hover:text-white cursor-pointer`}
                         >
                           {showConfirmPassword ? '👁️' : '👁️‍🗨️'}
                         </button>
@@ -421,17 +505,16 @@ const Register = () => {
                     </div>
                   </div>
 
-                  {/* الشروط والأحكام */}
                   <div className="pt-0.5">
-                    <label className="flex items-center gap-2.5 text-xs text-[#7B8190] cursor-pointer group">
+                    <label className="flex items-center gap-2.5 text-xs text-[#7B8190] dark:text-gray-400 cursor-pointer group">
                       <input
                         type="checkbox"
                         name="agreeTerms"
                         checked={formData.agreeTerms}
                         onChange={handleChange}
-                        className="w-4 h-4 rounded text-[#17233C] border-gray-300 focus:ring-0 cursor-pointer accent-[#17233C]"
+                        className="w-4 h-4 rounded text-[#17233C] dark:text-[#E89A5B] border-gray-300 dark:border-gray-600 focus:ring-0 cursor-pointer accent-[#17233C] dark:accent-[#E89A5B]"
                       />
-                      <span className="group-hover:text-[#17233C] transition-colors">
+                      <span className="group-hover:text-[#17233C] dark:group-hover:text-white transition-colors">
                         {t('register.termsAgree')}
                       </span>
                     </label>
@@ -440,11 +523,10 @@ const Register = () => {
                     )}
                   </div>
 
-                  {/* زر إنشاء الحساب */}
                   <button
                     type="submit"
                     disabled={isLoading || isGoogleLoading}
-                    className="w-full bg-[#17233C] hover:bg-[#E89A5B] text-white py-3 px-4 rounded-xl font-semibold text-sm tracking-wide transition-all duration-300 shadow-md hover:shadow-lg disabled:opacity-75 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-2 group mt-2"
+                    className="w-full bg-[#17233C] hover:bg-[#E89A5B] dark:bg-[#E89A5B] dark:hover:bg-[#d4894d] text-white py-3 px-4 rounded-xl font-semibold text-sm tracking-wide transition-all duration-300 shadow-md hover:shadow-lg disabled:opacity-75 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-2 group mt-2"
                   >
                     {isLoading ? (
                       <>
@@ -466,10 +548,9 @@ const Register = () => {
                 </form>
               </>
             ) : (
-              /* خطوة إدخال OTP بنفس هوية التصميم */
               <form onSubmit={handleVerifyOtp} className="space-y-4">
                 <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-[#1F2937] mb-1">
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-[#1F2937] dark:text-gray-300 mb-1">
                     {isRtl ? 'كود التحقق (6 أرقام)' : 'OTP Code (6 Digits)'}
                   </label>
                   <input
@@ -481,10 +562,10 @@ const Register = () => {
                       if (errors.otp) setErrors({});
                     }}
                     placeholder="123456"
-                    className={`w-full px-4 py-3 rounded-xl border text-center font-bold tracking-widest text-lg outline-none transition-all duration-200 bg-[#FAFAFA] focus:bg-white ${
+                    className={`w-full px-4 py-3 rounded-xl border text-center font-bold tracking-widest text-lg outline-none transition-all duration-200 bg-[#FAFAFA] dark:bg-gray-900 dark:text-white ${
                       errors.otp
                         ? 'border-[#C95C5C] focus:ring-2 focus:ring-[#C95C5C]/20'
-                        : 'border-[#E5E7EB] focus:border-[#17233C] focus:ring-4 focus:ring-[#17233C]/5'
+                        : 'border-[#E5E7EB] dark:border-gray-700 focus:border-[#17233C] dark:focus:border-[#E89A5B]'
                     }`}
                   />
                   {errors.otp && (
@@ -494,10 +575,27 @@ const Register = () => {
                   )}
                 </div>
 
+                <div className="text-center py-1">
+                  {canResend ? (
+                    <button
+                      type="button"
+                      onClick={handleResendOtp}
+                      disabled={isLoading}
+                      className="text-xs font-semibold text-[#E89A5B] hover:underline cursor-pointer transition-colors"
+                    >
+                      {isRtl ? 'إعادة إرسال رمز التحقق' : 'Resend OTP Code'}
+                    </button>
+                  ) : (
+                    <span className="text-xs text-slate-400 dark:text-gray-500 font-mono">
+                      {isRtl ? `إعادة الإرسال بعد (${resendTimer}) ثانية` : `Resend available in (${resendTimer})s`}
+                    </span>
+                  )}
+                </div>
+
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full bg-[#17233C] hover:bg-[#E89A5B] text-white py-3 px-4 rounded-xl font-semibold text-sm tracking-wide transition-all duration-300 shadow-md hover:shadow-lg disabled:opacity-75 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-2"
+                  className="w-full bg-[#17233C] hover:bg-[#E89A5B] dark:bg-[#E89A5B] dark:hover:bg-[#d4894d] text-white py-3 px-4 rounded-xl font-semibold text-sm tracking-wide transition-all duration-300 shadow-md hover:shadow-lg disabled:opacity-75 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-2"
                 >
                   {isLoading ? (
                     <>
@@ -515,18 +613,18 @@ const Register = () => {
                 <button
                   type="button"
                   onClick={() => setStep('form')}
-                  className="w-full text-center text-xs text-[#7B8190] hover:text-[#17233C] transition-colors py-1 cursor-pointer"
+                  className="w-full text-center text-xs text-[#7B8190] dark:text-gray-400 hover:text-[#17233C] dark:hover:text-white transition-colors py-1 cursor-pointer"
                 >
                   {isRtl ? '← تعديل البيانات المدخلة' : '← Edit Registration Details'}
                 </button>
               </form>
             )}
 
-            <div className="mt-5 text-center text-xs text-[#7B8190]">
+            <div className="mt-5 text-center text-xs text-[#7B8190] dark:text-gray-400">
               {t('register.hasAccountPrompt')}{' '}
               <Link
                 to="/login"
-                className="text-[#17233C] font-bold hover:text-[#E89A5B] transition-colors underline decoration-1 underline-offset-4"
+                className="text-[#17233C] dark:text-[#E89A5B] font-bold hover:underline transition-colors"
               >
                 {t('register.loginAction')}
               </Link>
