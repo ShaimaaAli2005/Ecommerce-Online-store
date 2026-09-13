@@ -1,11 +1,19 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { getProductById } from "../../services/productService";
+import { useTranslation } from "react-i18next";
+import {
+  getProductById,
+  getProductReviews,
+} from "../../services/productService";
+import { useCart } from "../../context/CartContext";
 
 const ProductDetails = () => {
+  const { t } = useTranslation("products");
   const { id } = useParams();
+  const { addToCart } = useCart();
 
   const [product, setProduct] = useState(null);
+  const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [selectedImage, setSelectedImage] = useState(0);
@@ -16,23 +24,38 @@ const ProductDetails = () => {
         setLoading(true);
         setError("");
 
-        const data = await getProductById(id);
-        setProduct(data);
+        const productData = await getProductById(id);
+        setProduct(productData);
+
+        try {
+          const reviewsData = await getProductReviews(id);
+
+          setReviews(
+            reviewsData.reviews ||
+              reviewsData.product?.reviews ||
+              reviewsData ||
+              []
+          );
+        } catch (reviewError) {
+          setReviews(productData.reviews || []);
+        }
       } catch (error) {
         console.error("Error fetching product:", error);
-        setError("Failed to load product");
+        setError(t("details.failed"));
       } finally {
         setLoading(false);
       }
     };
 
     fetchProduct();
-  }, [id]);
+  }, [id, t]);
 
   if (loading) {
     return (
       <div className="min-h-screen bg-[#F7F5F0] py-16 text-center">
-        <p className="text-[#7B8190]">Loading...</p>
+        <p className="text-[#7B8190]">
+          {t("details.loading")}
+        </p>
       </div>
     );
   }
@@ -41,7 +64,7 @@ const ProductDetails = () => {
     return (
       <div className="min-h-screen bg-[#F7F5F0] py-16 text-center">
         <p className="text-red-500">
-          {error || "Product not found"}
+          {error || t("details.notFound")}
         </p>
       </div>
     );
@@ -56,10 +79,6 @@ const ProductDetails = () => {
       ? product.discountPrice
       : product.price;
 
-  const reviews = Array.isArray(product.reviews)
-    ? product.reviews
-    : [];
-
   const mainImage =
     images[selectedImage]?.url ||
     images[0]?.url ||
@@ -69,12 +88,10 @@ const ProductDetails = () => {
     <div className="min-h-screen bg-[#F7F5F0] py-10">
       <div className="container mx-auto px-4">
 
-        {/* Product Details */}
         <div className="grid grid-cols-1 gap-10 rounded-2xl bg-white p-6 shadow-sm md:grid-cols-2">
 
-          {/* ================= Images ================= */}
+          {/* Images */}
           <div>
-            {/* Main Image */}
             <div className="mb-4 overflow-hidden rounded-2xl bg-[#F7F5F0]">
               <img
                 src={mainImage}
@@ -83,7 +100,6 @@ const ProductDetails = () => {
               />
             </div>
 
-            {/* Thumbnails */}
             {images.length > 1 && (
               <div className="flex gap-3 overflow-x-auto">
                 {images.map((image, index) => (
@@ -108,10 +124,9 @@ const ProductDetails = () => {
             )}
           </div>
 
-          {/* ================= Product Information ================= */}
+          {/* Product Information */}
           <div className="flex flex-col justify-center">
 
-            {/* Category */}
             {product.category && (
               <p className="mb-2 text-sm font-medium uppercase tracking-wide text-[#7B8190]">
                 {typeof product.category === "object"
@@ -120,7 +135,6 @@ const ProductDetails = () => {
               </p>
             )}
 
-            {/* Product Name */}
             <h1 className="mb-4 font-['Poppins'] text-3xl font-bold text-[#17233C]">
               {product.name}
             </h1>
@@ -136,11 +150,11 @@ const ProductDetails = () => {
               </div>
 
               <span className="text-sm text-[#7B8190]">
-                ({product.numReviews || reviews.length} reviews)
+                ({product.numReviews || reviews.length}{" "}
+                {t("card.reviews")})
               </span>
             </div>
 
-            {/* Short Description */}
             {product.shortDescription && (
               <p className="mb-5 text-[#7B8190]">
                 {product.shortDescription}
@@ -150,17 +164,16 @@ const ProductDetails = () => {
             {/* Price */}
             <div className="mb-5 flex items-center gap-3">
               <span className="text-2xl font-bold text-[#17233C]">
-                {finalPrice} EGP
+                {finalPrice} {t("card.egp")}
               </span>
 
               {product.discountPrice > 0 && (
                 <span className="text-lg text-[#7B8190] line-through">
-                  {product.price} EGP
+                  {product.price} {t("card.egp")}
                 </span>
               )}
             </div>
 
-            {/* Description */}
             {product.description && (
               <p className="mb-6 leading-7 text-[#555B66]">
                 {product.description}
@@ -169,7 +182,7 @@ const ProductDetails = () => {
 
             {/* Stock */}
             <p className="mb-6 font-medium text-[#17233C]">
-              Stock:{" "}
+              {t("details.stock")}:{" "}
               <span
                 className={
                   product.stock > 0
@@ -181,30 +194,30 @@ const ProductDetails = () => {
               </span>
             </p>
 
-            {/* Add To Cart */}
             <button
               type="button"
+              onClick={() => addToCart(product)}
               disabled={!product.stock || product.stock <= 0}
               className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#17233C] px-6 py-3 font-semibold text-white transition-colors hover:bg-[#E89A5B] disabled:cursor-not-allowed disabled:bg-gray-400"
             >
               <i className="fa-solid fa-cart-shopping"></i>
 
               {product.stock > 0
-                ? "Add to Cart"
-                : "Out of Stock"}
+                ? t("details.addToCart")
+                : t("details.outOfStock")}
             </button>
           </div>
         </div>
 
-        {/* ================= Reviews ================= */}
+        {/* Reviews */}
         <div className="mt-10 rounded-2xl bg-white p-6 shadow-sm">
           <h2 className="mb-6 font-['Poppins'] text-2xl font-bold text-[#17233C]">
-            Customer Reviews
+            {t("details.reviewsTitle")}
           </h2>
 
           {reviews.length === 0 ? (
             <p className="text-[#7B8190]">
-              No reviews yet.
+              {t("details.noReviews")}
             </p>
           ) : (
             <div className="space-y-5">
@@ -213,12 +226,11 @@ const ProductDetails = () => {
                   key={review._id || index}
                   className="border-b border-[#E5E7EB] pb-5 last:border-b-0"
                 >
-                  {/* Reviewer + Rating */}
                   <div className="mb-2 flex items-center justify-between">
                     <h3 className="font-semibold text-[#17233C]">
                       {review.user?.name ||
                         review.user?.username ||
-                        "Customer"}
+                        t("details.customer")}
                     </h3>
 
                     <div className="flex items-center gap-1">
@@ -230,11 +242,10 @@ const ProductDetails = () => {
                     </div>
                   </div>
 
-                  {/* Review Comment */}
                   <p className="text-sm leading-6 text-[#7B8190]">
                     {review.comment ||
                       review.review ||
-                      "No comment"}
+                      t("details.noComment")}
                   </p>
                 </div>
               ))}

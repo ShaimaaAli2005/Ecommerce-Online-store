@@ -1,0 +1,28 @@
+{
+  "grid": {
+    "title": "Products",
+    "subtitle": "Discover our latest products",
+    "loading": "Loading products...",
+    "error": "Failed to load products",
+    "empty": "No products available."
+  },
+  "card": {
+    "sale": "Sale",
+    "addToWishlist": "Add to wishlist",
+    "viewDetails": "View Details",
+    "reviews": "reviews",
+    "egp": "EGP"
+  },
+  "details": {
+    "loading": "Loading...",
+    "notFound": "Product not found",
+    "failed": "Failed to load product",
+    "reviewsTitle": "Customer Reviews",
+    "noReviews": "No reviews yet.",
+    "customer": "Customer",
+    "noComment": "No comment",
+    "stock": "Stock",
+    "addToCart": "Add to Cart",
+    "outOfStock": "Out of Stock"
+  }
+}
