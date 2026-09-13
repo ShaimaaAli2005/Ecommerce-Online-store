@@ -1,13 +1,20 @@
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 
-// استيراد ملفات الترجمة الخاصة بالمصادقة
 import enAuth from './locales/en/auth.json';
 import arAuth from './locales/ar/auth.json';
 
-// ملفات نصوص قائمة الرغبات
 import enWishlist from './locales/en/wishlist.json';
 import arWishlist from './locales/ar/wishlist.json';
+
+import enProducts from './locales/en/products.json';
+import arProducts from './locales/ar/products.json';
+
+import enProfile from './locales/en/profile.json';
+import arProfile from './locales/ar/profile.json';
+
+import enOrders from './locales/en/orders.json';
+import arOrders from './locales/ar/orders.json';
 
 const savedLanguage = localStorage.getItem('luma_lang') || 'en';
 
@@ -18,26 +25,32 @@ i18n
       en: {
         auth: enAuth,
         wishlist: enWishlist,
-        // هنا يستطيع باقي الزملاء إضافة ملفاتهم مستقبلاً:
-        // cart: enCart,
+        products: enProducts,
+        profile: enProfile,
+        orders: enOrders,
       },
+
       ar: {
         auth: arAuth,
-        wishlist: enWishlist,
-        // cart: arCart,
+        wishlist: arWishlist,
+        products: arProducts,
+        profile: arProfile,
+        orders: arOrders,
       },
     },
+
     lng: savedLanguage,
     fallbackLng: 'en',
-    // هنا يستطيع باقي الزملاء إضافة اسم الملف الجديد الذي تم اضافته مستقبلاً:
-    ns: ['auth', 'wishlist'],
+
+    ns: ['auth', 'wishlist', 'products', 'profile', 'orders'],
+
     defaultNS: 'auth',
+
     interpolation: {
       escapeValue: false,
     },
   });
 
-// ضبط اتجاه المستند ولغته فور بدء التطبيق
 document.documentElement.dir = savedLanguage === 'ar' ? 'rtl' : 'ltr';
 document.documentElement.lang = savedLanguage;
 

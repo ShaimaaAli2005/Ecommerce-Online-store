@@ -1,8 +1,11 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import ProductCard from "../../components/ProductCard/ProductCard";
 import { getProducts } from "../../services/productService";
 
 const ProductGrid = () => {
+  const { t } = useTranslation("products");
+
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -16,19 +19,21 @@ const ProductGrid = () => {
 
         setProducts(data.products || data);
       } catch (err) {
-        setError("Failed to load products");
+        setError(t("grid.error"));
       } finally {
         setLoading(false);
       }
     };
 
     fetchProducts();
-  }, []);
+  }, [t]);
 
   if (loading) {
     return (
       <div className="flex min-h-[400px] items-center justify-center">
-        <p className="text-[#7B8190]">Loading products...</p>
+        <p className="text-[#7B8190]">
+          {t("grid.loading")}
+        </p>
       </div>
     );
   }
@@ -36,7 +41,9 @@ const ProductGrid = () => {
   if (error) {
     return (
       <div className="flex min-h-[400px] items-center justify-center">
-        <p className="text-[#C95C5C]">{error}</p>
+        <p className="text-[#C95C5C]">
+          {error}
+        </p>
       </div>
     );
   }
@@ -46,17 +53,19 @@ const ProductGrid = () => {
       <div className="mx-auto max-w-7xl">
         <div className="mb-8">
           <h1 className="font-['Poppins'] text-3xl font-bold text-[#17233C]">
-            Products
+            {t("grid.title")}
           </h1>
 
           <p className="mt-2 text-sm text-[#7B8190]">
-            Discover our latest products
+            {t("grid.subtitle")}
           </p>
         </div>
 
         {products.length === 0 ? (
           <div className="py-16 text-center">
-            <p className="text-[#7B8190]">No products available.</p>
+            <p className="text-[#7B8190]">
+              {t("grid.empty")}
+            </p>
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">

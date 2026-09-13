@@ -1,6 +1,9 @@
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 const ProductCard = ({ product }) => {
+  const { t } = useTranslation("products");
+
   const {
     _id,
     name,
@@ -35,14 +38,14 @@ const ProductCard = ({ product }) => {
 
         {hasDiscount && (
           <span className="absolute left-3 top-3 rounded-full bg-[#E89A5B] px-3 py-1 text-xs font-semibold text-white">
-            Sale
+            {t("card.sale")}
           </span>
         )}
 
         <button
           type="button"
           className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full bg-white text-[#17233C] shadow-sm transition-colors hover:bg-[#E89A5B] hover:text-white"
-          aria-label="Add to wishlist"
+          aria-label={t("card.addToWishlist")}
         >
           <i className="fa-regular fa-heart"></i>
         </button>
@@ -79,7 +82,7 @@ const ProductCard = ({ product }) => {
 
               {numReviews !== undefined && (
                 <span className="ml-1">
-                  ({numReviews})
+                  ({numReviews} {t("card.reviews")})
                 </span>
               )}
             </span>
@@ -88,12 +91,12 @@ const ProductCard = ({ product }) => {
 
         <div className="mt-3 flex items-center gap-2">
           <span className="text-lg font-bold text-[#17233C]">
-            {hasDiscount ? discountPrice : price} EGP
+            {hasDiscount ? discountPrice : price} {t("card.egp")}
           </span>
 
           {hasDiscount && (
             <span className="text-sm text-[#7B8190] line-through">
-              {price} EGP
+              {price} {t("card.egp")}
             </span>
           )}
         </div>
@@ -102,7 +105,7 @@ const ProductCard = ({ product }) => {
           to={`/products/${_id}`}
           className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-[#17233C] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#E89A5B]"
         >
-          View Details
+          {t("card.viewDetails")}
         </Link>
       </div>
     </article>

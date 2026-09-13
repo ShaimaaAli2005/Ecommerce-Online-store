@@ -1,0 +1,17 @@
+{
+  "title": "حسابي",
+  "customer": "عميل",
+  "accountInfo": "معلومات الحساب",
+  "editProfile": "تعديل الملف الشخصي",
+  "addresses": "العناوين",
+  "noAddresses": "لا توجد عناوين حتى الآن.",
+  "country": "الدولة",
+  "city": "المدينة",
+  "street": "الشارع",
+  "building": "المبنى",
+  "postalCode": "الرمز البريدي",
+  "addAddress": "إضافة عنوان",
+  "changePassword": "تغيير كلمة المرور",
+  "logout": "تسجيل الخروج",
+  "phone": "غير محدد"
+}

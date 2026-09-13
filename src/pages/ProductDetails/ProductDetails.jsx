@@ -1,9 +1,14 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { getProductById, getProductReviews } from "../../services/productService";
+import { useTranslation } from "react-i18next";
+import {
+  getProductById,
+  getProductReviews,
+} from "../../services/productService";
 import { useCart } from "../../context/CartContext";
 
 const ProductDetails = () => {
+  const { t } = useTranslation("products");
   const { id } = useParams();
   const { addToCart } = useCart();
 
@@ -24,6 +29,7 @@ const ProductDetails = () => {
 
         try {
           const reviewsData = await getProductReviews(id);
+
           setReviews(
             reviewsData.reviews ||
               reviewsData.product?.reviews ||
@@ -35,19 +41,21 @@ const ProductDetails = () => {
         }
       } catch (error) {
         console.error("Error fetching product:", error);
-        setError("Failed to load product");
+        setError(t("details.failed"));
       } finally {
         setLoading(false);
       }
     };
 
     fetchProduct();
-  }, [id]);
+  }, [id, t]);
 
   if (loading) {
     return (
       <div className="min-h-screen bg-[#F7F5F0] py-16 text-center">
-        <p className="text-[#7B8190]">Loading...</p>
+        <p className="text-[#7B8190]">
+          {t("details.loading")}
+        </p>
       </div>
     );
   }
@@ -56,7 +64,7 @@ const ProductDetails = () => {
     return (
       <div className="min-h-screen bg-[#F7F5F0] py-16 text-center">
         <p className="text-red-500">
-          {error || "Product not found"}
+          {error || t("details.notFound")}
         </p>
       </div>
     );
@@ -142,7 +150,8 @@ const ProductDetails = () => {
               </div>
 
               <span className="text-sm text-[#7B8190]">
-                ({product.numReviews || reviews.length} reviews)
+                ({product.numReviews || reviews.length}{" "}
+                {t("card.reviews")})
               </span>
             </div>
 
@@ -155,12 +164,12 @@ const ProductDetails = () => {
             {/* Price */}
             <div className="mb-5 flex items-center gap-3">
               <span className="text-2xl font-bold text-[#17233C]">
-                {finalPrice} EGP
+                {finalPrice} {t("card.egp")}
               </span>
 
               {product.discountPrice > 0 && (
                 <span className="text-lg text-[#7B8190] line-through">
-                  {product.price} EGP
+                  {product.price} {t("card.egp")}
                 </span>
               )}
             </div>
@@ -173,7 +182,7 @@ const ProductDetails = () => {
 
             {/* Stock */}
             <p className="mb-6 font-medium text-[#17233C]">
-              Stock:{" "}
+              {t("details.stock")}:{" "}
               <span
                 className={
                   product.stock > 0
@@ -194,8 +203,8 @@ const ProductDetails = () => {
               <i className="fa-solid fa-cart-shopping"></i>
 
               {product.stock > 0
-                ? "Add to Cart"
-                : "Out of Stock"}
+                ? t("details.addToCart")
+                : t("details.outOfStock")}
             </button>
           </div>
         </div>
@@ -203,12 +212,12 @@ const ProductDetails = () => {
         {/* Reviews */}
         <div className="mt-10 rounded-2xl bg-white p-6 shadow-sm">
           <h2 className="mb-6 font-['Poppins'] text-2xl font-bold text-[#17233C]">
-            Customer Reviews
+            {t("details.reviewsTitle")}
           </h2>
 
           {reviews.length === 0 ? (
             <p className="text-[#7B8190]">
-              No reviews yet.
+              {t("details.noReviews")}
             </p>
           ) : (
             <div className="space-y-5">
@@ -221,7 +230,7 @@ const ProductDetails = () => {
                     <h3 className="font-semibold text-[#17233C]">
                       {review.user?.name ||
                         review.user?.username ||
-                        "Customer"}
+                        t("details.customer")}
                     </h3>
 
                     <div className="flex items-center gap-1">
@@ -236,7 +245,7 @@ const ProductDetails = () => {
                   <p className="text-sm leading-6 text-[#7B8190]">
                     {review.comment ||
                       review.review ||
-                      "No comment"}
+                      t("details.noComment")}
                   </p>
                 </div>
               ))}

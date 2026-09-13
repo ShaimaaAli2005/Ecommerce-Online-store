@@ -1,0 +1,12 @@
+{
+  "title": "My Orders",
+  "loading": "Loading orders...",
+  "error": "Failed to load your orders",
+  "empty": "You have no orders yet.",
+  "orderId": "Order ID",
+  "quantity": "Quantity",
+  "total": "Total",
+  "cancel": "Cancel Order",
+  "cancelError": "Unable to cancel this order",
+  "customer": "Customer"
+}

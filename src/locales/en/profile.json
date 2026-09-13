@@ -1,0 +1,17 @@
+{
+  "title": "My Profile",
+  "customer": "Customer",
+  "accountInfo": "Account Information",
+  "editProfile": "Edit Profile",
+  "addresses": "Addresses",
+  "noAddresses": "No addresses yet.",
+  "country": "Country",
+  "city": "City",
+  "street": "Street",
+  "building": "Building",
+  "postalCode": "Postal code",
+  "addAddress": "Add Address",
+  "changePassword": "Change Password",
+  "logout": "Logout",
+  "phone": "Not set"
+}

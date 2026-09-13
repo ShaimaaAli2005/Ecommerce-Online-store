@@ -1,8 +1,10 @@
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../context/AuthContext';
 
 const Profile = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation('profile');
   const { user, logoutUser } = useAuth();
 
   const handleLogout = async () => {
@@ -25,7 +27,7 @@ const Profile = () => {
 
         {/* Page Title */}
         <h1 className="text-2xl font-bold font-['Poppins'] text-[#17233C] dark:text-white">
-          My Profile
+          {t("title")}
         </h1>
 
         {/* Account Info */}
@@ -43,7 +45,7 @@ const Profile = () => {
               <div className="space-y-0.5">
 
                 <h2 className="text-lg font-bold text-[#17233C] dark:text-white uppercase tracking-wide">
-                  {user?.name || 'CUSTOMER'}
+                  {user?.name || t("customer")}
                 </h2>
 
                 <p className="text-xs text-[#7B8190] dark:text-gray-400">
@@ -51,7 +53,7 @@ const Profile = () => {
                 </p>
 
                 <p className="text-xs font-semibold text-[#E89A5B]">
-                  Customer
+                  {t("customer")}
                 </p>
 
               </div>
@@ -75,7 +77,7 @@ const Profile = () => {
               <i className="fa-solid fa-phone"></i>
 
               <span>
-                Not set
+                {t("phone")}
               </span>
             </div>
 
@@ -83,7 +85,7 @@ const Profile = () => {
               type="button"
               className="bg-[#17233C] hover:bg-[#E89A5B] text-white text-xs font-semibold px-5 py-2.5 rounded-xl transition-all duration-300 shadow-sm cursor-pointer mt-4"
             >
-              Edit Profile
+              {t("editProfile")}
             </button>
 
           </div>
@@ -98,44 +100,44 @@ const Profile = () => {
             <i className="fa-solid fa-location-dot text-[#E89A5B]"></i>
 
             <h2 className="text-sm font-bold text-[#17233C] dark:text-white">
-              Addresses
+              {t("addresses")}
             </h2>
 
           </div>
 
           <p className="text-xs text-[#7B8190] dark:text-gray-400">
-            No addresses yet.
+            {t("noAddresses")}
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2">
 
             <input
               type="text"
-              placeholder="Country"
+              placeholder={t("country")}
               className="bg-transparent border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 text-xs outline-none focus:border-[#17233C] dark:focus:border-[#E89A5B] dark:text-white"
             />
 
             <input
               type="text"
-              placeholder="City"
+              placeholder={t("city")}
               className="bg-transparent border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 text-xs outline-none focus:border-[#17233C] dark:focus:border-[#E89A5B] dark:text-white"
             />
 
             <input
               type="text"
-              placeholder="Street"
+              placeholder={t("street")}
               className="bg-transparent border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 text-xs outline-none focus:border-[#17233C] dark:focus:border-[#E89A5B] dark:text-white"
             />
 
             <input
               type="text"
-              placeholder="Building"
+              placeholder={t("building")}
               className="bg-transparent border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 text-xs outline-none focus:border-[#17233C] dark:focus:border-[#E89A5B] dark:text-white"
             />
 
             <input
               type="text"
-              placeholder="Postal code"
+              placeholder={t("postalCode")}
               className="bg-transparent border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 text-xs outline-none md:col-span-2 focus:border-[#17233C] dark:focus:border-[#E89A5B] dark:text-white"
             />
 
@@ -150,7 +152,7 @@ const Profile = () => {
               <i className="fa-solid fa-plus text-[10px]"></i>
 
               <span>
-                Add Address
+                {t("addAddress")}
               </span>
             </button>
 
@@ -166,7 +168,7 @@ const Profile = () => {
             <i className="fa-solid fa-lock text-[#E89A5B]"></i>
 
             <h2 className="text-sm font-bold text-[#17233C] dark:text-white">
-              Change Password
+              {t("changePassword")}
             </h2>
 
           </div>
@@ -177,7 +179,7 @@ const Profile = () => {
               type="button"
               className="border border-[#17233C] dark:border-gray-600 text-[#17233C] dark:text-white hover:bg-[#17233C] hover:text-white dark:hover:bg-gray-700 text-xs font-semibold px-6 py-2.5 rounded-xl transition-all duration-200 cursor-pointer"
             >
-              Change Password
+              {t("changePassword")}
             </button>
 
           </div>
@@ -196,7 +198,7 @@ const Profile = () => {
             <i className="fa-solid fa-right-from-bracket text-sm"></i>
 
             <span>
-              Logout
+              {t("logout")}
             </span>
 
           </button>
