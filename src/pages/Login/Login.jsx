@@ -12,7 +12,7 @@ const Login = () => {
 
   const currentLang = i18n.language || 'en';
   const isRtl = currentLang === 'ar';
-  const destination = location.state?.from?.pathname || '/wishlist';
+  const destination = location.state?.from?.pathname || '/';
 
   const [formData, setFormData] = useState({
     email: '',
