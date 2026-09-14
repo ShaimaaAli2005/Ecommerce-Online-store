@@ -13,7 +13,7 @@ export const userService = {
     return response.data;
   },
 
-  // 1. طلب إرسال كود OTP
+  // 1. طلب إرسال كود التحقق (OTP)
   sendResetOtp: async (email) => {
     const response = await api.post('/auth/forgot-password/send-otp', { email });
     return response.data;
@@ -23,8 +23,8 @@ export const userService = {
   verifyResetOtp: async (email, otp, newPassword) => {
     const response = await api.post('/auth/forgot-password/verify-otp', {
       email,
-      otp,
-      password: newPassword,
+      otp: String(otp).trim(),
+      newPassword,
     });
     return response.data;
   },

@@ -34,6 +34,7 @@ i18n
         wishlist: arWishlist,
         shop: arShop,
         profile: arProfile,
+        // cart: arCart,
       },
     },
     lng: savedLanguage,
