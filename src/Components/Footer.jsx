@@ -1,9 +1,13 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 const Footer = () => {
+  const { t } = useTranslation('footer');
+
   return (
     <footer className="bg-[#17233C] text-white font-['Inter'] pt-12 pb-6 border-t border-[#E5E7EB]/10">
-      <div className="max-w-7xl mx-auto px-8 grid grid-cols-1 md:grid-cols-3 gap-30 mb-10 text-left">
+      <div className="max-w-7xl mx-auto px-8 grid grid-cols-1 md:grid-cols-3 gap-30 mb-10 text-start">
         
         {/* Brand Logo & Description */}
         <div className="space-y-3">
@@ -14,27 +18,27 @@ const Footer = () => {
             </h2>
           </div>
           <p className="text-[#7B8190] text-sm leading-relaxed max-w-sm">
-            Shop the future, delivered today. Premium products at the best prices with fast delivery across Egypt.
+            {t('description')}
           </p>
         </div>
 
         {/*Quick Links */}
         <div className="space-y-3">
           <h3 className="font-semibold text-base font-['Poppins'] text-white">
-            Quick Links
+            {t('quickLinks')}
           </h3>
           <ul className="space-y-2 text-sm text-[#7B8190]">
-            <li><a href="#" className="hover:text-[#E89A5B] transition-colors">Shop</a></li>
-            <li><a href="#" className="hover:text-[#E89A5B] transition-colors">My Orders</a></li>
-            <li><a href="#" className="hover:text-[#E89A5B] transition-colors">Wishlist</a></li>
-            <li><a href="#" className="hover:text-[#E89A5B] transition-colors">Profile</a></li>
+            <li><Link to="/shop" className="hover:text-[#E89A5B] transition-colors">{t('shop')}</Link></li>
+            <li><Link to="/my-orders" className="hover:text-[#E89A5B] transition-colors">{t('myOrders')}</Link></li>
+            <li><Link to="/wishlist" className="hover:text-[#E89A5B] transition-colors">{t('wishlist')}</Link></li>
+            <li><Link to="/profile" className="hover:text-[#E89A5B] transition-colors">{t('profile')}</Link></li>
           </ul>
         </div>
 
         {/* Follow Us & Social Icons */}
         <div className="space-y-3">
           <h3 className="font-semibold text-base font-['Poppins'] text-white">
-            Follow Us
+            {t('followUs')}
           </h3>
           <div className="flex items-center gap-3 text-sm">
             <a 
@@ -51,17 +55,17 @@ const Footer = () => {
             >
               <i className="fa-regular fa-comment-dots"></i>
             </a>
-            <a 
-              href="#" 
+            <Link 
+              to="/wishlist" 
               className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center text-[#7B8190] hover:bg-[#E89A5B] hover:text-white transition-all"
               title="Wishlist">
               <i className="fa-regular fa-heart"></i>
-            </a>
+            </Link>
           </div>
         </div>
       </div>
       <div className="max-w-7xl mx-auto px-8 pt-6 border-t border-white/10 text-center text-xs text-[#7B8190]">
-        © {new Date().getFullYear()} LUMA Store. All rights reserved.
+        ©️ {new Date().getFullYear()} LUMA Store. {t('rights')}
       </div>
     </footer>
   );

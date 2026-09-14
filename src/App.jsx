@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import Home from './pages/Home/Home';
 import Login from './pages/Auth/Login';
 import Register from './pages/Auth/Register';
 import ForgotPassword from './pages/Auth/ForgotPassword';
@@ -12,6 +13,7 @@ import Checkout from './pages/Checkout';
 import Orders from './pages/Orders/Orders';
 import ProtectedRoute from './Components/ProtectedRoute';
 import MainLayout from './Components/MainLayout';
+import Orders from './pages/Orders/Orders';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
@@ -53,7 +55,7 @@ function App() {
               <Route path="/forgot-password" element={<ForgotPassword />} />
 
               <Route element={<MainLayout />}>
-                <Route path="/" element={<Navigate to="/login" replace />} />
+                <Route path="/" element={<Home />} />
                 <Route path="/shop" element={<Shop />} />
                 <Route path="/wishlist" element={<Wishlist />} />
                 <Route path="/cart" element={<Cart />} />

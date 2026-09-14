@@ -1,5 +1,10 @@
+feature/layout-store-nada-new
 import React, { useEffect, useState } from 'react';
 import orderService from '../../services/orderService';
+import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
+import orderService from "../../services/orderService";
+develop
 
 const Orders = () => {
   const [orders, setOrders] = useState([]);
@@ -11,7 +16,10 @@ const Orders = () => {
       setLoading(true);
       setError('');
 
+ feature/layout-store-nada-new
       const response = await orderService.getMyOrders();
+      const data = await orderService.getMyOrders();
+ develop
 
       setOrders(response?.data?.orders || response?.data || []);
     } catch (err) {
@@ -28,11 +36,18 @@ const Orders = () => {
 
   const handleCancel = async (orderId) => {
     try {
+      feature/layout-store-nada-new
       await orderService.cancelOrder(orderId);
       await loadOrders();
     } catch (err) {
       console.error('Error cancelling order:', err);
       setError('Failed to cancel the order.');
+      await orderService.cancelOrder(id);
+      await fetchOrders();
+    } catch (error) {
+      console.error("Error cancelling order:", error);
+      alert(t("cancelError"));
+ develop
     }
   };
 
