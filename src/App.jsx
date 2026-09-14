@@ -11,6 +11,7 @@ import Cart from './pages/Cart';
 import Checkout from './pages/Checkout';
 import ProtectedRoute from './Components/ProtectedRoute';
 import MainLayout from './Components/MainLayout';
+import Orders from './pages/Orders/Orders';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
@@ -60,7 +61,7 @@ function App() {
                 <Route element={<ProtectedRoute />}>
                   <Route path="/profile" element={<Profile />} />
                   <Route path="/checkout" element={<Checkout />} />
-                  <Route path="/my-orders" element={<Navigate to="/profile" replace />} />
+                  <Route path="/my-orders" element={<Orders />} />
                 </Route>
               </Route>
 

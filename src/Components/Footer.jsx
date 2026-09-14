@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 
 const Footer = () => {
   return (
@@ -24,10 +25,10 @@ const Footer = () => {
             Quick Links
           </h3>
           <ul className="space-y-2 text-sm text-[#7B8190]">
-            <li><a href="#" className="hover:text-[#E89A5B] transition-colors">Shop</a></li>
-            <li><a href="#" className="hover:text-[#E89A5B] transition-colors">My Orders</a></li>
-            <li><a href="#" className="hover:text-[#E89A5B] transition-colors">Wishlist</a></li>
-            <li><a href="#" className="hover:text-[#E89A5B] transition-colors">Profile</a></li>
+            <li><Link to="/shop" className="hover:text-[#E89A5B] transition-colors">Shop</Link></li>
+            <li><Link to="/my-orders" className="hover:text-[#E89A5B] transition-colors">My Orders</Link></li>
+            <li><Link to="/wishlist" className="hover:text-[#E89A5B] transition-colors">Wishlist</Link></li>
+            <li><Link to="/profile" className="hover:text-[#E89A5B] transition-colors">Profile</Link></li>
           </ul>
         </div>
 
@@ -51,17 +52,17 @@ const Footer = () => {
             >
               <i className="fa-regular fa-comment-dots"></i>
             </a>
-            <a 
-              href="#" 
+            <Link 
+              to="/wishlist" 
               className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center text-[#7B8190] hover:bg-[#E89A5B] hover:text-white transition-all"
               title="Wishlist">
               <i className="fa-regular fa-heart"></i>
-            </a>
+            </Link>
           </div>
         </div>
       </div>
       <div className="max-w-7xl mx-auto px-8 pt-6 border-t border-white/10 text-center text-xs text-[#7B8190]">
-        © {new Date().getFullYear()} LUMA Store. All rights reserved.
+        ©️ {new Date().getFullYear()} LUMA Store. All rights reserved.
       </div>
     </footer>
   );

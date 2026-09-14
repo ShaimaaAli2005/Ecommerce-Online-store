@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { getMyOrders, cancelOrder } from "../../services/orderService";
+import orderService from "../../services/orderService";
 
 const Orders = () => {
   const { t } = useTranslation("orders");
@@ -14,7 +14,7 @@ const Orders = () => {
       setLoading(true);
       setError("");
 
-      const data = await getMyOrders();
+      const data = await orderService.getMyOrders();
 
       setOrders(
         data.orders ||
@@ -36,7 +36,7 @@ const Orders = () => {
 
   const handleCancel = async (id) => {
     try {
-      await cancelOrder(id);
+      await orderService.cancelOrder(id);
       await fetchOrders();
     } catch (error) {
       console.error("Error cancelling order:", error);
