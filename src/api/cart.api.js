@@ -1,34 +1,44 @@
 import api from './axios';
 
+// 1. جلب السلة
 export const getCartApi = async () => {
   const response = await api.get('/carts');
   return response.data;
 };
+export const getCart = getCartApi;
 
+// 2. إضافة منتج للسلة
 export const addToCartApi = async (productId, quantity = 1) => {
   const response = await api.post('/carts/items', {
     productId,
     quantity,
   });
-
   return response.data;
 };
-export const removeFromCartApi = removeCartItemApi;
-export const removeItemFromCart = removeCartItemApi;
-export const removeFromCart = removeCartItemApi;
+export const addItemToCart = addToCartApi;
+export const addToCart = addToCartApi;
 
+// 3. تحديث الكمية
 export const updateCartQuantityApi = async (productId, quantity) => {
   const response = await api.patch(`/carts/items/${productId}`, {
     quantity,
   });
   return response.data;
 };
+export const updateCartItemApi = updateCartQuantityApi;
+export const updateQuantityApi = updateCartQuantityApi;
+export const updateItemQuantity = updateCartQuantityApi;
 
+// 4. حذف منتج من السلة
 export const removeFromCartApi = async (productId) => {
   const response = await api.delete(`/carts/items/${productId}`);
   return response.data;
 };
+export const removeCartItemApi = removeFromCartApi;
+export const removeItemFromCart = removeFromCartApi;
+export const removeFromCart = removeFromCartApi;
 
+// 5. تفريغ السلة
 export const clearCartApi = async () => {
   const response = await api.delete('/carts/clear');
   return response.data;
@@ -48,6 +58,7 @@ export const removeCouponApi = async () => {
 };
 export const removeCoupon = removeCouponApi;
 
+// Export default شاطر يضم كل الأسماء البديلة القديمة كاملة
 export default {
   getCart,
   getCartApi,
@@ -60,7 +71,12 @@ export default {
   updateItemQuantity,
   removeCartItemApi,
   removeFromCartApi,
+  removeItemFromCart,
+  removeFromCart,
   clearCartApi,
+  clearCart,
   applyCouponApi,
+  applyCoupon,
   removeCouponApi,
+  removeCoupon,
 };

@@ -19,7 +19,6 @@ export default function Wishlist() {
   const handleAddToCart = async (product) => {
     const productId = product.id || product._id;
     
-    // استدعاء الـ addToCart المتصل بالـ API الجديد
     if (addToCart) {
       await addToCart(
         {
@@ -35,7 +34,7 @@ export default function Wishlist() {
 
     setAddedIds((prev) => [...prev, productId]);
     setTimeout(() => {
-      setAddedIds((prev) => prev.filter((id) => id !== pId));
+      setAddedIds((prev) => prev.filter((id) => id !== productId));
     }, 1800);
   };
 
@@ -110,7 +109,7 @@ export default function Wishlist() {
               {t('pageTitle', 'My Wishlist')}
             </h1>
             <p className="text-sm text-[#7B8190] dark:text-gray-400 mt-1">
-              {t('itemsCount', { count: items.length, defaultValue: `${items.length} items saved` })}
+              {t('itemsCount', { count: wishlistItems.length, defaultValue: `${wishlistItems.length} items saved`})}
             </p>
           </div>
 
@@ -184,7 +183,6 @@ export default function Wishlist() {
               const discountPrice = Number(prod.discountPrice) || 0;
               const hasDiscount = discountPrice > 0 && discountPrice < price;
               const finalPrice = hasDiscount ? discountPrice : price;
-              const savedAmount = hasDiscount ? price - discountPrice : 0;
               const isAdded = addedIds.includes(pId);
               const inStock = prod.stock === undefined || prod.stock > 0;
 
@@ -208,7 +206,7 @@ export default function Wishlist() {
                   {/* زر الإزالة */}
                   <button
                     type="button"
-                    onClick={() => handleRemove(productId)}
+                    onClick={() => handleRemoveWithUndo(prod)}
                     title={t('removeTooltip', 'Remove from wishlist')}
                     className={`absolute top-3 ${isRtl ? 'left-3' : 'right-3'} z-10 w-8 h-8 rounded-full bg-white/90 dark:bg-gray-900/90 hover:bg-[#FEE2E2] dark:hover:bg-red-900 text-[#7B8190] dark:text-gray-300 hover:text-[#C95C5C] flex items-center justify-center transition-colors shadow-xs cursor-pointer border border-[#E5E7EB] dark:border-gray-700`}
                   >
@@ -216,6 +214,7 @@ export default function Wishlist() {
                   </button>
 
                   <div>
+                    {/* صورة المنتج */}
                     <div className="aspect-square w-full rounded-xl overflow-hidden bg-slate-50 dark:bg-gray-900 mb-3 relative">
                       <Link to={`/products/${pId}`} className="block w-full h-full">
                         <img
@@ -224,35 +223,6 @@ export default function Wishlist() {
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                         />
                       </Link>
-
-                  <div className="p-5 flex flex-col flex-grow justify-between">
-                    <div>
-                      <span className="text-[11px] font-semibold uppercase tracking-wider text-[#7B8190] dark:text-gray-400">
-                        {displayCategory}
-                      </span>
-                      <h3 className="text-base font-bold text-[#17233C] dark:text-white mt-1 line-clamp-1">
-                        {displayName}
-                      </h3>
-                      <p className="text-base font-semibold text-[#17233C] dark:text-gray-200 mt-2 font-['Poppins']" dir="ltr">
-                        ${product.price.toFixed(2)}
-                      </p>
-                    </div>
-
-                    <div className="pt-4 mt-4 border-t border-[#F3F4F6] dark:border-gray-700">
-                      <button
-                        type="button"
-                        onClick={() => handleAddToCart(product)}
-                        disabled={!product.inStock || isAdded}
-                        className={`w-full py-2.5 px-4 rounded-[10px] text-xs font-semibold transition-all duration-200 shadow-xs flex items-center justify-center gap-2 cursor-pointer ${
-                          !product.inStock
-                            ? 'bg-[#F3F4F6] dark:bg-gray-700 text-[#9CA3AF] dark:text-gray-500 cursor-not-allowed'
-                            : isAdded
-                            ? 'bg-[#15803D] text-white'
-                            : 'bg-[#17233C] dark:bg-gray-700 hover:bg-[#E89A5B] dark:hover:bg-[#E89A5B] text-white'
-                        }`}
-                      >
-                        {inStock ? t('inStock', 'In Stock') : t('outOfStock', 'Out of Stock')}
-                      </span>
 
                       <button
                         type="button"
@@ -263,6 +233,7 @@ export default function Wishlist() {
                       </button>
                     </div>
 
+                    {/* القسم والاسم */}
                     {displayCategory && (
                       <span className="text-[10px] font-bold uppercase tracking-wider text-[#E89A5B] block mb-1">
                         {displayCategory}
@@ -277,6 +248,7 @@ export default function Wishlist() {
                     </Link>
                   </div>
 
+                  {/* السعر وزر الإضافة للسلة */}
                   <div className="mt-4 pt-3 border-t border-slate-100 dark:border-gray-700/80">
                     <div className="flex items-baseline gap-2 mb-3">
                       <span className="text-base font-bold text-slate-900 dark:text-white font-mono">
@@ -309,7 +281,7 @@ export default function Wishlist() {
                       ) : (
                         <>
                           <i className="fa-solid fa-cart-shopping text-xs"></i>
-                          <span>{t('addToCart', 'Add to Cart')}</span>
+                          <span>{inStock ? t('addToCart', 'Add to Cart') : t('outOfStock', 'Out of Stock')}</span>
                         </>
                       )}
                     </button>

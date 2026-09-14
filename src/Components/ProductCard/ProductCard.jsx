@@ -1,9 +1,11 @@
-import React, { useState } from "react";
+import React from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
 const ProductCard = ({ product }) => {
   const { t } = useTranslation("products");
+
+  if (!product) return null;
 
   const {
     _id,
@@ -18,7 +20,7 @@ const ProductCard = ({ product }) => {
   } = product;
 
   const productImage =
-    images?.[0]?.url || "/placeholder-product.png";
+    images?.[0]?.url || (typeof images?.[0] === "string" ? images[0] : "/placeholder-product.png");
 
   const hasDiscount =
     discountPrice !== undefined &&
@@ -43,32 +45,29 @@ const ProductCard = ({ product }) => {
 
         {hasDiscount && (
           <span className="absolute left-3 top-3 rounded-full bg-[#E89A5B] px-3 py-1 text-xs font-semibold text-white">
-            {t("card.sale")}
+            {t("card.sale", "Sale")}
           </span>
         )}
 
-        <button
-          type="button"
+        <Link
+          to={`/products/${_id}`}
           className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full bg-white text-[#17233C] shadow-sm transition-colors hover:bg-[#E89A5B] hover:text-white"
-          aria-label={t("card.addToWishlist")}
+          title={t('quickView', 'Quick View')}
         >
           <i className="fa-regular fa-eye"></i>
-          <span>{t('quickView', 'Quick View')}</span>
-        </button>
+        </Link>
       </div>
 
       <div className="p-4">
         {category && (
           <p className="mb-1 text-xs font-medium uppercase tracking-wide text-[#7B8190]">
-            {typeof category === "object"
-              ? category.name
-              : category}
+            {typeof category === "object" ? category.name : category}
           </p>
         )}
 
         <Link
           to={`/products/${_id}`}
-          className="line-clamp-2 min-h-[48px] font-['Poppins'] text-base font-semibold text-[#17233C]"
+          className="line-clamp-2 min-h-[48px] font-['Poppins'] text-base font-semibold text-[#17233C] hover:text-[#E89A5B] transition-colors"
         >
           {name}
         </Link>
@@ -88,20 +87,21 @@ const ProductCard = ({ product }) => {
 
               {numReviews !== undefined && (
                 <span className="ml-1">
-                  ({numReviews} {t("card.reviews")})
+                  ({numReviews} {t("card.reviews", "reviews")})
                 </span>
               )}
             </span>
           </div>
+        )}
 
         <div className="mt-3 flex items-center gap-2">
           <span className="text-lg font-bold text-[#17233C]">
-            {hasDiscount ? discountPrice : price} {t("card.egp")}
+            {hasDiscount ? discountPrice : price} {t("card.egp", "EGP")}
           </span>
 
           {hasDiscount && (
             <span className="text-sm text-[#7B8190] line-through">
-              {price} {t("card.egp")}
+              {price} {t("card.egp", "EGP")}
             </span>
           )}
         </div>
@@ -110,7 +110,7 @@ const ProductCard = ({ product }) => {
           to={`/products/${_id}`}
           className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-[#17233C] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#E89A5B]"
         >
-          {t("card.viewDetails")}
+          {t("card.viewDetails", "View Details")}
         </Link>
       </div>
     </article>

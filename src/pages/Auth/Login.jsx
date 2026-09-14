@@ -24,6 +24,7 @@ const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [isDark, setIsDark] = useState(() => document.documentElement.classList.contains('dark'))
 
   const timerRef = useRef(null);
 

@@ -1,9 +1,9 @@
 import { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 
-import Login from './pages/Login/Login';
-import Register from './pages/Register/Register';
-import ForgotPassword from './pages/ForgotPassword/ForgotPassword';
+import Login from './pages/Auth/Login';
+import Register from './pages/Auth/Register';
+import ForgotPassword from './pages/Auth/ForgotPassword';
 import Wishlist from './pages/Wishlist/Wishlist';
 import Profile from './pages/Profile/Profile';
 import ProductDetails from './pages/ProductDetails/ProductDetails';
@@ -38,77 +38,80 @@ function App() {
         <WishlistProvider>
           <Toaster position="top-center" reverseOrder={false} />
 
-      <Router>
-        <Routes>
+          <Router>
+            <Routes>
 
-          {/* Authentication pages */}
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/forgot-password" element={<ForgotPassword />} />
+              {/* Authentication pages */}
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
 
-          {/* Store pages with Navbar and Footer */}
-          <Route element={<MainLayout />}>
+              {/* Store pages with Navbar and Footer */}
+              <Route element={<MainLayout />}>
 
-            <Route
-              path="/"
-              element={<Navigate to="/login" replace />}
-            />
+                {/* Root path now loads ProductGrid instead of forcing login */}
+                <Route
+                  path="/"
+                  element={<ProductGrid />}
+                />
 
-            <Route
-              path="/wishlist"
-              element={<Wishlist />}
-            />
+                <Route
+                  path="/wishlist"
+                  element={<Wishlist />}
+                />
 
-            <Route
-              path="/cart"
-              element={<Cart />}
-            />
+                <Route
+                  path="/cart"
+                  element={<Cart />}
+                />
 
-            {/* Product Grid */}
-            <Route
-              path="/products"
-              element={<ProductGrid />}
-            />
+                {/* Product Grid */}
+                <Route
+                  path="/products"
+                  element={<ProductGrid />}
+                />
 
-            {/* Product Details */}
-            <Route
-              path="/products/:id"
-              element={<ProductDetails />}
-            />
+                {/* Product Details */}
+                <Route
+                  path="/products/:id"
+                  element={<ProductDetails />}
+                />
 
-            {/* Protected Store Pages */}
-            <Route element={<ProtectedRoute />}>
+                {/* Protected Store Pages */}
+                <Route element={<ProtectedRoute />}>
 
-              {/* Profile */}
+                  {/* Profile */}
+                  <Route
+                    path="/profile"
+                    element={<Profile />}
+                  />
+
+                  {/* Checkout */}
+                  <Route
+                    path="/checkout"
+                    element={<Checkout />}
+                  />
+
+                  {/* My Orders */}
+                  <Route
+                    path="/profile/orders"
+                    element={<Orders />}
+                  />
+
+                </Route>
+
+              </Route>
+
+              {/* Unknown routes redirect to products instead of login */}
               <Route
-                path="/profile"
-                element={<Profile />}
+                path="*"
+                element={<Navigate to="/products" replace />}
               />
 
-              {/* Checkout */}
-              <Route
-                path="/checkout"
-                element={<Checkout />}
-              />
-
-              {/* My Orders */}
-              <Route
-                path="/profile/orders"
-                element={<Orders />}
-              />
-
-            </Route>
-
-          </Route>
-
-          {/* Unknown routes */}
-          <Route
-            path="*"
-            element={<Navigate to="/login" replace />}
-          />
-
-        </Routes>
-      </Router>
+            </Routes>
+          </Router>
+        </WishlistProvider>
+      </CartProvider>
     </AuthProvider>
   );
 }
