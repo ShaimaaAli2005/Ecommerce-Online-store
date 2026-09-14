@@ -17,6 +17,18 @@ import arShop from './locales/ar/shop.json';
 import enProfile from './locales/en/profile.json';
 import arProfile from './locales/ar/profile.json';
 
+// ملفات النصوص المشتركة (الناف بار...إلخ)
+import enCommon from './locales/en/common.json';
+import arCommon from './locales/ar/common.json';
+
+// ملفات صفحة الهوم
+import enHome from './locales/en/home.json';
+import arHome from './locales/ar/home.json';
+
+// ملفات الفوتر
+import enFooter from './locales/en/footer.json';
+import arFooter from './locales/ar/footer.json';
+
 const savedLanguage = localStorage.getItem('luma_lang') || 'en';
 
 i18n
@@ -28,18 +40,24 @@ i18n
         wishlist: enWishlist,
         shop: enShop,
         profile: enProfile,
+        common: enCommon,
+        home: enHome,
+        footer: enFooter,
       },
       ar: {
         auth: arAuth,
         wishlist: arWishlist,
         shop: arShop,
         profile: arProfile,
+        common: arCommon,
+        home: arHome,
+        footer: arFooter,
         // cart: arCart,
       },
     },
     lng: savedLanguage,
     fallbackLng: 'en',
-    ns: ['auth', 'wishlist', 'shop', 'profile'],
+    ns: ['auth', 'wishlist', 'shop', 'profile', 'common', 'home', 'footer'],
     defaultNS: 'auth',
     interpolation: {
       escapeValue: false,
