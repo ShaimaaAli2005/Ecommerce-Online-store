@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 
 const CATEGORIES_DEF = [
   { id: '', key: 'allCategories', defaultLabel: 'All Categories' },
+  { id: 'phones', key: 'cat_phones', defaultLabel: 'Smartphones' },
   { id: 'electronics', key: 'cat_electronics', defaultLabel: 'Electronics' },
   { id: 'audio', key: 'cat_audio', defaultLabel: 'Audio & Headphones' },
   { id: 'accessories', key: 'cat_accessories', defaultLabel: 'Accessories' },
@@ -12,18 +13,18 @@ const CATEGORIES_DEF = [
 const BRANDS = ['Sony', 'Apple', 'Samsung', 'Anker', 'Bose', 'JBL'];
 
 export default function ProductFilters({ filters, onFilterChange, onReset }) {
-  // 1. استدعاء الـ Hook داخل المكون ليتجاوب فوراً مع تغييرات اللغة
   const { t, i18n } = useTranslation('shop');
   const isRtl = i18n.language === 'ar';
 
   const SORT_OPTIONS = [
-    { value: '', label: t('defaultSort', 'Default') },
-    { value: 'price_asc', label: t('priceLowHigh', 'Price: Low to High') },
-    { value: 'price_desc', label: t('priceHighLow', 'Price: High to Low') },
-    { value: 'rating', label: t('topRated', 'Top Rated') },
+    { value: '', label: t('sortDefault', 'Default Sorting') },
+    { value: 'price_asc', label: t('sortPriceAsc', 'Price: Low to High') },
+    { value: 'price_desc', label: t('sortPriceDesc', 'Price: High to Low') },
+    { value: 'rating', label: t('sortRating', 'Highest Rated') },
+    { value: 'popular', label: t('sortPopular', 'Most Popular') },
+    { value: 'oldest', label: t('sortOldest', 'Oldest') },
   ];
 
-  // دالة مخصصة لتبديل الماركة أو إلغائها بنقرة واحدة
   const handleBrandToggle = (brand) => {
     if (filters.brand === brand) {
       onFilterChange('brand', '');
@@ -35,29 +36,29 @@ export default function ProductFilters({ filters, onFilterChange, onReset }) {
   return (
     <div className={`space-y-6 select-none ${isRtl ? 'text-right' : 'text-left'}`} dir={isRtl ? 'rtl' : 'ltr'}>
       
-      {/* 1. الترتيب (Sort) */}
+      {/* 1. الترتيب المتوافق مع الـ API */}
       <div>
-        <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+        <label className="block text-xs font-bold text-slate-700 dark:text-gray-300 uppercase tracking-wider mb-2">
           {t('sortBy', 'Sort By')}
         </label>
         <select
           value={filters.sort || ''}
           onChange={(e) => onFilterChange('sort', e.target.value)}
-          className="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 outline-none transition cursor-pointer font-medium text-slate-700"
+          className="w-full px-3 py-2 text-xs sm:text-sm bg-slate-50 dark:bg-gray-900 border border-slate-200 dark:border-gray-700 rounded-xl focus:bg-white dark:focus:bg-gray-800 focus:border-[#E89A5B] outline-none transition cursor-pointer font-medium text-slate-700 dark:text-gray-200"
         >
           {SORT_OPTIONS.map((opt) => (
-            <option key={opt.value} value={opt.value}>
+            <option key={opt.value || 'default-sort'} value={opt.value} className="dark:bg-gray-900">
               {opt.label}
             </option>
           ))}
         </select>
       </div>
 
-      <hr className="border-slate-100" />
+      <hr className="border-slate-100 dark:border-gray-700" />
 
-      {/* 2. التصنيفات (Categories) */}
+      {/* 2. التصنيفات مع إضافة key لكل عنصر */}
       <div>
-        <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-3">
+        <h3 className="text-xs font-bold text-slate-700 dark:text-gray-300 uppercase tracking-wider mb-3">
           {t('categories', 'Categories')}
         </h3>
         <div className="space-y-1.5">
@@ -65,34 +66,50 @@ export default function ProductFilters({ filters, onFilterChange, onReset }) {
             const isSelected = (filters.category || '') === cat.id;
             return (
               <button
-                key={cat.id || 'all'}
+                key={cat.id || 'all-cat'}
                 type="button"
                 onClick={() => onFilterChange('category', cat.id)}
-                className={`w-full flex items-center justify-between px-3 py-2 text-sm rounded-xl transition ${
+                className={`w-full flex items-center justify-between px-3 py-2 text-sm rounded-xl transition cursor-pointer ${
                   isSelected
-                    ? 'bg-blue-50 text-blue-600 font-semibold'
-                    : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                    ? 'bg-[#17233C] text-white dark:bg-[#E89A5B] font-semibold shadow-xs'
+                    : 'text-slate-600 dark:text-gray-400 hover:bg-slate-50 dark:hover:bg-gray-700/50 hover:text-slate-900 dark:hover:text-white'
                 }`}
               >
                 <span>{t(cat.key, cat.defaultLabel)}</span>
-                {isSelected && <span className="w-1.5 h-1.5 rounded-full bg-blue-600" />}
+                {isSelected && <span className="w-1.5 h-1.5 rounded-full bg-white" />}
               </button>
             );
           })}
         </div>
       </div>
 
-      <hr className="border-slate-100" />
+      <hr className="border-slate-100 dark:border-gray-700" />
 
-      {/* 3. نطاق السعر (Price Range) */}
+      {/* 3. نطاق السعر */}
       <div>
-        <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-3">
-          {t('priceRange', 'Price Range ($)')}
-        </h3>
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-xs font-bold text-slate-700 dark:text-gray-300 uppercase tracking-wider">
+            {t('priceRange', 'Price Range (EGP)')}
+          </h3>
+          <span className="text-[11px] font-bold text-[#E89A5B] font-mono">
+            {filters.minPrice || 0} - {filters.maxPrice || '5000+'}
+          </span>
+        </div>
+
+        <input
+          type="range"
+          min="0"
+          max="10000"
+          step="250"
+          value={filters.maxPrice || 10000}
+          onChange={(e) => onFilterChange('maxPrice', e.target.value === '10000' ? '' : e.target.value)}
+          className="w-full h-1.5 bg-slate-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer accent-[#E89A5B] mb-3"
+        />
+
         <div className="grid grid-cols-2 gap-3" dir="ltr">
           <div>
-            <label className="block text-[11px] font-medium text-slate-400 mb-1">
-              {t('minPrice', 'Min Price')}
+            <label className="block text-[11px] font-medium text-slate-400 dark:text-gray-400 mb-1">
+              {t('minPrice', 'Min')}
             </label>
             <input
               type="number"
@@ -100,30 +117,30 @@ export default function ProductFilters({ filters, onFilterChange, onReset }) {
               placeholder="0"
               value={filters.minPrice || ''}
               onChange={(e) => onFilterChange('minPrice', e.target.value)}
-              className="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-blue-600 outline-none transition font-medium text-slate-800"
+              className="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-gray-900 border border-slate-200 dark:border-gray-700 rounded-xl focus:bg-white dark:focus:bg-gray-800 focus:border-[#E89A5B] outline-none transition font-medium text-slate-800 dark:text-gray-100"
             />
           </div>
           <div>
-            <label className="block text-[11px] font-medium text-slate-400 mb-1">
-              {t('maxPrice', 'Max Price')}
+            <label className="block text-[11px] font-medium text-slate-400 dark:text-gray-400 mb-1">
+              {t('maxPrice', 'Max')}
             </label>
             <input
               type="number"
               min="0"
-              placeholder="1000"
+              placeholder="5000"
               value={filters.maxPrice || ''}
               onChange={(e) => onFilterChange('maxPrice', e.target.value)}
-              className="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-blue-600 outline-none transition font-medium text-slate-800"
+              className="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-gray-900 border border-slate-200 dark:border-gray-700 rounded-xl focus:bg-white dark:focus:bg-gray-800 focus:border-[#E89A5B] outline-none transition font-medium text-slate-800 dark:text-gray-100"
             />
           </div>
         </div>
       </div>
 
-      <hr className="border-slate-100" />
+      <hr className="border-slate-100 dark:border-gray-700" />
 
-      {/* 4. الماركات (Brands) */}
+      {/* 4. الماركات */}
       <div>
-        <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-3">
+        <h3 className="text-xs font-bold text-slate-700 dark:text-gray-300 uppercase tracking-wider mb-3">
           {t('brands', 'Brands')}
         </h3>
         <div className="space-y-2 max-h-48 overflow-y-auto pl-1">
@@ -133,28 +150,27 @@ export default function ProductFilters({ filters, onFilterChange, onReset }) {
               <div
                 key={brand}
                 onClick={() => handleBrandToggle(brand)}
-                className="flex items-center gap-2.5 text-sm text-slate-600 hover:text-slate-900 cursor-pointer select-none py-0.5"
+                className="flex items-center gap-2.5 text-sm text-slate-600 dark:text-gray-300 hover:text-slate-900 dark:hover:text-white cursor-pointer select-none py-0.5"
               >
                 <input
                   type="checkbox"
                   checked={isChecked}
                   readOnly
-                  className="w-4 h-4 text-blue-600 border-slate-300 rounded focus:ring-blue-500 cursor-pointer pointer-events-none"
+                  className="w-4 h-4 text-[#E89A5B] accent-[#E89A5B] border-slate-300 dark:border-gray-600 rounded cursor-pointer pointer-events-none"
                 />
-                <span className={isChecked ? 'font-semibold text-blue-600' : ''}>{brand}</span>
+                <span className={isChecked ? 'font-semibold text-[#E89A5B]' : ''}>{brand}</span>
               </div>
             );
           })}
         </div>
       </div>
 
-      <hr className="border-slate-100" />
+      <hr className="border-slate-100 dark:border-gray-700" />
 
-      {/* زر إعادة ضبط الفلاتر */}
       <button
         type="button"
         onClick={onReset}
-        className="w-full py-2.5 text-xs font-semibold text-rose-600 hover:text-rose-700 hover:bg-rose-50 border border-rose-200 rounded-xl transition"
+        className="w-full py-2.5 text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 border border-rose-200 dark:border-rose-900/50 rounded-xl transition cursor-pointer"
       >
         {t('resetFilters', 'Reset Filters')}
       </button>

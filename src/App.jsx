@@ -15,6 +15,8 @@ import MainLayout from './Components/MainLayout';
 
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from './context/AuthContext';
+import { CartProvider } from './context/CartContext';
+import { WishlistProvider } from './context/WishlistContext'; 
 
 import Cart from './pages/Cart';
 import Checkout from './pages/Checkout';
@@ -32,7 +34,9 @@ function App() {
 
   return (
     <AuthProvider>
-      <Toaster position="top-center" reverseOrder={false} />
+      <CartProvider>
+        <WishlistProvider>
+          <Toaster position="top-center" reverseOrder={false} />
 
       <Router>
         <Routes>

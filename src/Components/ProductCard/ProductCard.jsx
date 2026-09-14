@@ -1,3 +1,4 @@
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
@@ -33,6 +34,10 @@ const ProductCard = ({ product }) => {
             src={productImage}
             alt={name}
             className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+            onError={(e) => {
+              e.target.onerror = null;
+              e.target.src = "https://placehold.co/600x600?text=No+Image";
+            }}
           />
         </Link>
 
@@ -47,7 +52,8 @@ const ProductCard = ({ product }) => {
           className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full bg-white text-[#17233C] shadow-sm transition-colors hover:bg-[#E89A5B] hover:text-white"
           aria-label={t("card.addToWishlist")}
         >
-          <i className="fa-regular fa-heart"></i>
+          <i className="fa-regular fa-eye"></i>
+          <span>{t('quickView', 'Quick View')}</span>
         </button>
       </div>
 
@@ -87,7 +93,6 @@ const ProductCard = ({ product }) => {
               )}
             </span>
           </div>
-        )}
 
         <div className="mt-3 flex items-center gap-2">
           <span className="text-lg font-bold text-[#17233C]">

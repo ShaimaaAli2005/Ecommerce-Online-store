@@ -15,14 +15,51 @@ const ProductDetails = () => {
   const [product, setProduct] = useState(null);
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [selectedImage, setSelectedImage] = useState(0);
+  const [activeImageIdx, setActiveImageIdx] = useState(0);
+  const [quantity, setQuantity] = useState(1);
+
+  // المراجعات والتقييمات
+  const [reviews, setReviews] = useState([]);
+  const [reviewsLoading, setReviewsLoading] = useState(true);
+  const [newRating, setNewRating] = useState(5);
+  const [newComment, setNewComment] = useState('');
+  const [submittingReview, setSubmittingReview] = useState(false);
+
+  // جلب بيانات المنتج
+  const fetchProductData = useCallback(async () => {
+    try {
+      setLoading(true);
+      const res = await productService.getProductById(id);
+      const data = res?.product || res?.data?.product || res?.data || res;
+      setProduct(data);
+    } catch {
+      toast.error(t('productNotFound', 'Product not found or failed to load'));
+    } finally {
+      setLoading(false);
+    }
+  }, [id, t]);
+
+  // جلب مراجعات المنتج
+  const fetchReviews = useCallback(async () => {
+    try {
+      setReviewsLoading(true);
+      const res = await productService.getProductReviews(id);
+      const items = res?.reviews || res?.data?.reviews || (Array.isArray(res) ? res : []);
+      setReviews(items);
+    } catch {
+      setReviews([]);
+    } finally {
+      setReviewsLoading(false);
+    }
+  }, [id]);
 
   useEffect(() => {
-    const fetchProduct = async () => {
-      try {
-        setLoading(true);
-        setError("");
+    if (id) {
+      fetchProductData();
+      fetchReviews();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [id, fetchProductData, fetchReviews]);
 
         const productData = await getProductById(id);
         setProduct(productData);
@@ -45,7 +82,10 @@ const ProductDetails = () => {
       } finally {
         setLoading(false);
       }
-    };
+    } finally {
+      setSubmittingReview(false);
+    }
+  };
 
     fetchProduct();
   }, [id, t]);
@@ -60,7 +100,7 @@ const ProductDetails = () => {
     );
   }
 
-  if (error || !product) {
+  if (!product) {
     return (
       <div className="min-h-screen bg-[#F7F5F0] py-16 text-center">
         <p className="text-red-500">
@@ -85,8 +125,11 @@ const ProductDetails = () => {
     "/placeholder-product.png";
 
   return (
-    <div className="min-h-screen bg-[#F7F5F0] py-10">
-      <div className="container mx-auto px-4">
+    <div
+      className="min-h-screen bg-[#F7F5F0] dark:bg-[#0F172A] text-slate-900 dark:text-white py-8 sm:py-12 px-4 sm:px-6 lg:px-8 font-['Inter'] transition-colors duration-300"
+      dir={isRtl ? 'rtl' : 'ltr'}
+    >
+      <div className="max-w-6xl mx-auto space-y-10">
 
         <div className="grid grid-cols-1 gap-10 rounded-2xl bg-white p-6 shadow-sm md:grid-cols-2">
 
@@ -94,30 +137,39 @@ const ProductDetails = () => {
           <div>
             <div className="mb-4 overflow-hidden rounded-2xl bg-[#F7F5F0]">
               <img
-                src={mainImage}
-                alt={product.name}
-                className="h-[450px] w-full object-cover"
+                src={images[activeImageIdx]}
+                alt={productName}
+                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
               />
+              {hasDiscount && (
+                <span className="absolute top-4 start-4 px-3 py-1 bg-[#E89A5B] text-white text-xs font-bold rounded-full shadow-xs">
+                  {Math.round(((regularPrice - discountPrice) / regularPrice) * 100)}% {t('discountOff', 'OFF')}
+                </span>
+              )}
+              <button
+                type="button"
+                onClick={handleShare}
+                className="absolute top-4 end-4 w-9 h-9 rounded-full bg-white/90 dark:bg-gray-800/90 text-slate-700 dark:text-gray-200 flex items-center justify-center hover:bg-[#17233C] hover:text-white dark:hover:bg-[#E89A5B] transition shadow-xs cursor-pointer"
+                title={t('share', 'Share Product')}
+              >
+                <i className="fa-solid fa-arrow-up-from-bracket text-xs" />
+              </button>
             </div>
 
             {images.length > 1 && (
-              <div className="flex gap-3 overflow-x-auto">
-                {images.map((image, index) => (
+              <div className="flex items-center gap-3 overflow-x-auto pb-2">
+                {images.map((img, idx) => (
                   <button
-                    key={image.public_id || image._id || index}
+                    key={idx}
                     type="button"
-                    onClick={() => setSelectedImage(index)}
-                    className={`h-20 w-20 shrink-0 overflow-hidden rounded-lg border-2 ${
-                      selectedImage === index
-                        ? "border-[#E89A5B]"
-                        : "border-[#E5E7EB]"
+                    onClick={() => setActiveImageIdx(idx)}
+                    className={`w-18 h-18 rounded-2xl overflow-hidden border-2 transition shrink-0 cursor-pointer ${
+                      activeImageIdx === idx
+                        ? 'border-[#E89A5B] shadow-xs'
+                        : 'border-transparent bg-white dark:bg-gray-800 opacity-70 hover:opacity-100'
                     }`}
                   >
-                    <img
-                      src={image.url}
-                      alt={`${product.name} ${index + 1}`}
-                      className="h-full w-full object-cover"
-                    />
+                    <img src={img} alt="" className="w-full h-full object-cover" />
                   </button>
                 ))}
               </div>
@@ -251,11 +303,121 @@ const ProductDetails = () => {
               ))}
             </div>
           )}
+
+          {/* قسم المراجعات والتقييمات */}
+          <div className="border-t border-slate-100 dark:border-gray-700 pt-8 space-y-8">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white font-['Poppins']">
+                  {t('customerReviews', 'Customer Reviews')}
+                </h3>
+                <p className="text-xs text-slate-500 dark:text-gray-400 mt-0.5">
+                  {t('reviewsSub', 'Read genuine customer reviews or share your own experience')}
+                </p>
+              </div>
+              <div className="flex items-center gap-2 bg-slate-50 dark:bg-gray-900 px-4 py-2 rounded-xl border border-slate-200 dark:border-gray-700">
+                <span className="text-lg font-bold text-slate-900 dark:text-white">
+                  {Number(product.averageRating || 5).toFixed(1)}
+                </span>
+                <span className="text-xs text-slate-400">/ 5.0</span>
+              </div>
+            </div>
+
+            {/* نموذج إضافة تقييم جديد */}
+            <form
+              onSubmit={handleAddReview}
+              className="p-5 rounded-2xl bg-slate-50/70 dark:bg-gray-900/60 border border-slate-200/80 dark:border-gray-700 space-y-4"
+            >
+              <h4 className="text-xs font-bold text-slate-800 dark:text-gray-200 uppercase tracking-wider">
+                {t('leaveReview', 'Write a Review')}
+              </h4>
+
+              {/* اختيار النجوم */}
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-slate-500 dark:text-gray-400">{t('yourRating', 'Rating:')}</span>
+                <div className="flex items-center gap-1">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <button
+                      key={star}
+                      type="button"
+                      onClick={() => setNewRating(star)}
+                      className="text-base text-[#E89A5B] transition-transform hover:scale-110 cursor-pointer"
+                    >
+                      <i className={star <= newRating ? 'fa-solid fa-star' : 'fa-regular fa-star'} />
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <textarea
+                  rows="3"
+                  value={newComment}
+                  onChange={(e) => setNewComment(e.target.value)}
+                  placeholder={t('writeReviewPlaceholder', 'Write your honest review about this product...')}
+                  className="w-full px-4 py-2.5 text-xs sm:text-sm bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 rounded-xl outline-none focus:border-[#E89A5B] transition dark:text-white"
+                  required
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={submittingReview}
+                className="px-5 py-2.5 bg-[#17233C] hover:bg-[#E89A5B] dark:bg-[#E89A5B] dark:hover:bg-[#d4894d] text-white text-xs font-semibold rounded-xl transition cursor-pointer flex items-center gap-2 shadow-xs disabled:opacity-50"
+              >
+                {submittingReview && (
+                  <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                )}
+                <span>{submittingReview ? t('postingReview', 'Submitting...') : t('submitReview', 'Submit Review')}</span>
+              </button>
+            </form>
+
+            {/* قائمة المراجعات */}
+            {reviewsLoading ? (
+              <div className="py-6 text-center text-xs text-slate-400">
+                {t('loadingReviews', 'Loading reviews...')}
+              </div>
+            ) : reviews.length === 0 ? (
+              <div className="py-8 text-center space-y-2">
+                <i className="fa-regular fa-comments text-2xl text-slate-300 dark:text-gray-600" />
+                <p className="text-xs text-slate-500 dark:text-gray-400">
+                  {t('noReviewsYet', 'No reviews yet. Be the first to review this product!')}
+                </p>
+              </div>
+            ) : (
+              <div className="divide-y divide-slate-100 dark:divide-gray-700 space-y-4">
+                {reviews.map((rev, idx) => (
+                  <div key={rev._id || idx} className="pt-4 first:pt-0 space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="font-semibold text-xs text-slate-900 dark:text-white">
+                          {rev.username || rev.user?.username || t('customerDefault', 'Customer')}
+                        </span>
+                        <div className="flex text-[#E89A5B] text-[10px]">
+                          {[...Array(5)].map((_, i) => (
+                            <i
+                              key={i}
+                              className={i < rev.rating ? 'fa-solid fa-star' : 'fa-regular fa-star'}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                      <span className="text-[10px] text-slate-400">
+                        {new Date(rev.createdAt || Date.now()).toLocaleDateString()}
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-600 dark:text-gray-300 leading-relaxed">
+                      {rev.comment}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
         </div>
 
       </div>
     </div>
   );
-};
-
-export default ProductDetails;
+}
