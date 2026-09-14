@@ -12,6 +12,8 @@ import arProducts from './locales/ar/products.json';
 
 import enProfile from './locales/en/profile.json';
 import arProfile from './locales/ar/profile.json';
+// استيراد ال navbar
+import Navbar from './Components/Navbar';
 
 import enOrders from './locales/en/orders.json';
 import arOrders from './locales/ar/orders.json';
@@ -33,9 +35,10 @@ i18n
       ar: {
         auth: arAuth,
         wishlist: arWishlist,
-        products: arProducts,
+        shop: arShop,
         profile: arProfile,
-        orders: arOrders,
+        
+        // cart: arCart,
       },
     },
 
