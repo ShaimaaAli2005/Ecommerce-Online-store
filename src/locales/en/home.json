@@ -1,0 +1,44 @@
+{
+  "hero": {
+    "badge": "Premium Shopping Experience",
+    "titleLine1": "Shop the future,",
+    "titleLine2": "delivered today",
+    "subtitle": "Discover premium products at unbeatable prices. Fast delivery, easy returns, and exceptional quality.",
+    "shopNow": "Shop Now",
+    "viewCategories": "View Categories"
+  },
+  "categories": {
+    "title": "Shop by Category",
+    "subtitle": "Browse our wide range of categories",
+    "phones": "Phones",
+    "electronics": "Electronics",
+    "audio": "Audio",
+    "accessories": "Accessories",
+    "wearables": "Wearables"
+  },
+  "featured": {
+    "title": "Featured Products",
+    "subtitle": "Handpicked just for you",
+    "viewAll": "View All",
+    "noProducts": "No products found."
+  },
+  "howItWorks": {
+    "title": "How It Works",
+    "step1Title": "Browse Products",
+    "step1Desc": "Explore our wide range of premium products",
+    "step2Title": "Add to Cart",
+    "step2Desc": "Select your favorites and add them to your cart",
+    "step3Title": "Order & Receive",
+    "step3Desc": "Place your order and get it delivered to your doorstep"
+  },
+  "newsletter": {
+    "title": "Stay Updated",
+    "subtitle": "Subscribe to our newsletter and get exclusive deals and new arrivals first.",
+    "placeholder": "Enter your email address",
+    "subscribe": "Subscribe"
+  },
+  "toast": {
+    "addedToCart": "Added to cart!",
+    "subscribed": "Subscribed successfully!"
+  }
+}

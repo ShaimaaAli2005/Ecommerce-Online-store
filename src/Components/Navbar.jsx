@@ -1,14 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
-import { useCart } from '../context/CartContext'; 
+import { useCart } from '../context/CartContext';
 
 const Navbar = ({ wishlistCount = 0 }) => {
-  const { t } = useTranslation('auth');
+  const { t, i18n } = useTranslation(['common', 'auth']);
   const navigate = useNavigate();
   const { cartCount } = useCart();
-  
+
   const { user } = useAuth();
   const isLoggedIn = !!user || !!localStorage.getItem('token');
 
@@ -18,7 +19,6 @@ const Navbar = ({ wishlistCount = 0 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [isDarkMode, setIsDarkMode] = useState(false);
 
-  // التأكد من وضع الداركات عند فتح الصفحة
   useEffect(() => {
     const savedTheme = localStorage.getItem('theme');
     if (savedTheme === 'dark' || document.documentElement.classList.contains('dark')) {
@@ -33,45 +33,38 @@ const Navbar = ({ wishlistCount = 0 }) => {
   const handleToggleDarkMode = () => {
     const newMode = !isDarkMode;
     setIsDarkMode(newMode);
-    
+
     if (newMode) {
       document.documentElement.classList.add('dark');
       localStorage.setItem('theme', 'dark');
-      // تطبيق اللون الأسود الفخم يدوياً على أي عنصر خلفيته بيضاء للتأكيد الفوري
-      document.querySelectorAll('.bg-white').forEach(el => {
-        el.style.backgroundColor = '#1e293b';
-        el.style.color = '#ffffff';
-      });
     } else {
       document.documentElement.classList.remove('dark');
       localStorage.setItem('theme', 'light');
-      // رجوع الألوان لطبيعتها
-      document.querySelectorAll('.bg-white').forEach(el => {
-        el.style.backgroundColor = '';
-        el.style.color = '';
-      });
     }
   };
 
+  const handleToggleLanguage = () => {
+    const newLang = i18n.language === 'ar' ? 'en' : 'ar';
+    i18n.changeLanguage(newLang);
+  };
+
   const navLinks = [
-    { name: 'Home', href: '/' },
-    { name: 'Shop', href: '/shop' },
-    { name: 'My Orders', href: '/my-orders' },
-    { name: 'Wishlist', href: '/wishlist' },
+    { name: 'Home', label: t('common:home', 'Home'), href: '/' },
+    { name: 'Shop', label: t('common:shop', 'Shop'), href: '/shop' },
+    { name: 'My Orders', label: t('common:myOrders', 'My Orders'), href: '/my-orders' },
+    { name: 'Wishlist', label: t('common:wishlist', 'Wishlist'), href: '/wishlist' },
   ];
 
   return (
     <nav className="bg-[#FFFFFF] dark:bg-[#0F172A] text-[#1F2937] dark:text-white px-6 py-3.5 font-['Inter'] sticky top-0 z-50 border-b border-[#E5E7EB] dark:border-gray-800 transition-colors duration-300">
       <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
-        
-        {/* Logo */}
+
         <div className="flex items-center gap-2 shrink-0">
           <span className="font-bold text-2xl tracking-wider font-['Poppins'] text-[#17233C] dark:text-white">
             LUMA
           </span>
         </div>
 
-        {/* Navigation Pills */}
         <div className="hidden md:flex items-center bg-[#F7F5F0] dark:bg-gray-800 p-1 rounded-full border border-[#E5E7EB] dark:border-gray-700 space-x-1">
           {navLinks.map((link) => (
             <button
@@ -86,15 +79,13 @@ const Navbar = ({ wishlistCount = 0 }) => {
                   : 'text-[#7B8190] dark:text-gray-300 hover:text-[#1F2937] dark:hover:text-white hover:bg-[#E5E7EB]/50'
               }`}
             >
-              {link.name}
+              {link.label}
             </button>
           ))}
         </div>
 
-        {/* Icons & Actions */}
         <div className="hidden md:flex items-center gap-5 text-[#7B8190] dark:text-gray-300">
-          
-          {/* Search Box */}
+
           {isSearchOpen ? (
             <div className="flex items-center bg-[#F7F5F0] dark:bg-gray-800 rounded-full px-3 py-2.5 border border-gray-300 dark:border-gray-700 transition-all shadow-inner">
               <i className="fa-solid fa-magnifying-glass text-gray-400 text-xs mr-1.5"></i>
@@ -102,41 +93,39 @@ const Navbar = ({ wishlistCount = 0 }) => {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search..."
+                placeholder={t('common:search', 'Search...')}
                 autoFocus
                 className="w-36 lg:w-44 bg-transparent border-none outline-none text-xs text-gray-800 dark:text-white px-1 placeholder-gray-400"
               />
-              <button 
-                onClick={() => setIsSearchOpen(false)} 
+              <button
+                onClick={() => setIsSearchOpen(false)}
                 className="text-gray-400 hover:text-red-500 text-xs ml-1 font-bold transition-colors"
               >
                 <i className="fa-solid fa-xmark"></i>
               </button>
             </div>
           ) : (
-            <button 
+            <button
               onClick={() => setIsSearchOpen(true)}
-              className="hover:text-[#E89A5B] transition-colors p-1.5" 
-              title="Search"
+              className="hover:text-[#E89A5B] transition-colors p-1.5"
+              title={t('common:search', 'Search')}
             >
               <i className="fa-solid fa-magnifying-glass text-base"></i>
             </button>
           )}
 
-          {/* Theme Toggle Icon */}
-          <button 
+          <button
             onClick={handleToggleDarkMode}
             className="hover:text-[#E89A5B] transition-colors p-1.5 cursor-pointer text-base text-[#7B8190] dark:text-gray-300"
-            title="Toggle Theme"
+            title={t('common:toggleTheme', 'Toggle Theme')}
           >
             <i className={`fa-solid ${isDarkMode ? 'fa-moon text-[#E89A5B]' : 'fa-sun'}`}></i>
           </button>
 
-          {/* Wishlist Icon */}
-          <div 
+          <div
             onClick={() => navigate('/wishlist')}
-            className="relative cursor-pointer hover:text-[#E89A5B] dark:text-gray-200 transition-colors" 
-            title="Wishlist"
+            className="relative cursor-pointer hover:text-[#E89A5B] dark:text-gray-200 transition-colors"
+            title={t('common:wishlist', 'Wishlist')}
           >
             <i className="fa-regular fa-heart text-base"></i>
             {wishlistCount > 0 && (
@@ -146,11 +135,10 @@ const Navbar = ({ wishlistCount = 0 }) => {
             )}
           </div>
 
-          {/* Cart Icon */}
-          <div 
+          <div
             onClick={() => navigate('/cart')}
-            className="relative cursor-pointer hover:text-[#E89A5B] transition-colors" 
-            title="Cart"
+            className="relative cursor-pointer hover:text-[#E89A5B] transition-colors"
+            title={t('common:cart', 'Cart')}
           >
             <i className="fa-solid fa-cart-shopping text-base"></i>
             {cartCount > 0 && (
@@ -160,29 +148,36 @@ const Navbar = ({ wishlistCount = 0 }) => {
             )}
           </div>
 
-          {/* Admin Profile Link OR Login Button */}
+          {/* Language Toggle - Globe Icon (بين الكارت والأدمن) */}
+          <button
+            onClick={handleToggleLanguage}
+            className="hover:text-[#E89A5B] transition-colors p-1.5 cursor-pointer text-base text-[#7B8190] dark:text-gray-300"
+            title={t('common:changeLanguage', 'Change Language')}
+          >
+            <i className="fa-solid fa-globe"></i>
+          </button>
+
           {isLoggedIn ? (
-            <Link 
+            <Link
               to="/profile"
               className="flex items-center gap-2 border border-[#17233C] dark:border-white text-[#17233C] dark:text-white hover:bg-[#17233C] dark:hover:bg-white hover:text-[#FFFFFF] dark:hover:text-[#17233C] transition-all px-3.5 py-1.5 rounded-[10px] text-xs font-semibold tracking-wider ml-2"
             >
               <i className="fa-regular fa-user text-sm"></i>
-              <span>Admin</span>
+              <span>{t('common:admin', 'Admin')}</span>
             </Link>
           ) : (
-            <Link 
+            <Link
               to="/login"
               className="flex items-center gap-2 border border-[#17233C] dark:border-white text-[#17233C] dark:text-white hover:bg-[#17233C] dark:hover:bg-white hover:text-[#FFFFFF] dark:hover:text-[#17233C] transition-all px-3.5 py-1.5 rounded-[10px] text-xs font-semibold tracking-wider ml-2"
             >
               <i className="fa-regular fa-user text-sm"></i>
-              <span>Login</span>
+              <span>{t('common:login', 'Login')}</span>
             </Link>
           )}
 
         </div>
 
-        {/* Mobile Toggle */}
-        <button 
+        <button
           onClick={() => setIsOpen(!isOpen)}
           className="md:hidden text-[#17233C] dark:text-white focus:outline-none text-xl"
         >
@@ -191,7 +186,6 @@ const Navbar = ({ wishlistCount = 0 }) => {
 
       </div>
 
-      {/* Mobile Menu */}
       {isOpen && (
         <div className="md:hidden bg-[#FFFFFF] dark:bg-gray-900 border-t border-[#E5E7EB] dark:border-gray-800 mt-3 pt-3 pb-3 space-y-2 text-sm text-[#7B8190] dark:text-gray-300">
           {navLinks.map((link) => (
@@ -204,9 +198,18 @@ const Navbar = ({ wishlistCount = 0 }) => {
               }}
               className="block w-full text-left px-4 py-2 rounded-lg hover:bg-[#F7F5F0] dark:hover:bg-gray-800 hover:text-[#17233C] dark:hover:text-white transition-colors"
             >
-              {link.name}
+              {link.label}
             </button>
           ))}
+
+          <button
+            onClick={handleToggleLanguage}
+            className="flex items-center gap-2 w-full text-left px-4 py-2 rounded-lg hover:bg-[#F7F5F0] dark:hover:bg-gray-800 hover:text-[#17233C] dark:hover:text-white transition-colors"
+          >
+            <i className="fa-solid fa-globe"></i>
+            <span>{i18n.language === 'ar' ? 'English' : 'العربية'}</span>
+          </button>
+
           <div className="pt-2 border-t border-[#E5E7EB] dark:border-gray-800 px-4">
             {isLoggedIn ? (
               <Link
@@ -215,16 +218,16 @@ const Navbar = ({ wishlistCount = 0 }) => {
                 className="w-full flex items-center justify-center gap-2 border border-[#17233C] dark:border-white text-[#17233C] dark:text-white py-2 rounded-[10px] text-xs font-semibold hover:bg-[#17233C] dark:hover:bg-white hover:text-[#FFFFFF] dark:hover:text-[#17233C] transition-all"
               >
                 <i className="fa-regular fa-user text-sm"></i>
-                <span>Admin</span>
+                <span>{t('common:admin', 'Admin')}</span>
               </Link>
             ) : (
-              <Link 
+              <Link
                 to="/login"
                 onClick={() => setIsOpen(false)}
                 className="w-full flex items-center justify-center gap-2 border border-[#17233C] dark:border-white text-[#17233C] dark:text-white py-2 rounded-[10px] text-xs font-semibold hover:bg-[#17233C] dark:hover:bg-white hover:text-[#FFFFFF] dark:hover:text-[#17233C] transition-all"
               >
                 <i className="fa-regular fa-user text-sm"></i>
-                <span>Login</span>
+                <span>{t('common:login', 'Login')}</span>
               </Link>
             )}
           </div>
