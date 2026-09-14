@@ -28,23 +28,16 @@ i18n
         wishlist: enWishlist,
         shop: enShop,
         profile: enProfile,
-        // هنا يستطيع باقي الزملاء إضافة ملفاتهم مستقبلاً:
-        // cart: enCart,
       },
       ar: {
         auth: arAuth,
         wishlist: arWishlist,
- feature/navbar-and-routes
-
         shop: arShop,
         profile: arProfile,
- develop
-        // cart: arCart,
       },
     },
     lng: savedLanguage,
     fallbackLng: 'en',
-    // هنا يستطيع باقي الزملاء إضافة اسم الملف الجديد الذي تم اضافته مستقبلاً:
     ns: ['auth', 'wishlist', 'shop', 'profile'],
     defaultNS: 'auth',
     interpolation: {
@@ -62,7 +55,5 @@ i18n.on('languageChanged', (lng) => {
   document.documentElement.lang = lng;
   localStorage.setItem('luma_lang', lng);
 });
-
-
 
 export default i18n;
