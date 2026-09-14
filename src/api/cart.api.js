@@ -1,44 +1,78 @@
 import api from './axios';
 
-// 1. جلب السلة
-export const getCartApi = async () => {
+// 1. جلب السلة (GET /carts)
+export const getCart = async () => {
   const response = await api.get('/carts');
   return response.data;
 };
-export const getCart = getCartApi;
+export const getCartApi = getCart;
 
-// 2. إضافة منتج للسلة
-export const addToCartApi = async (productId, quantity = 1) => {
-  const response = await api.post('/carts/items', {
-    productId,
-    quantity,
-  });
+// 2. إضافة منتج للسلة (POST /carts/items)
+export const addToCartApi = async (rawPayload, maybeQty = 1) => {
+  let cleanPayload = {};
+
+  // تنقية البيانات سواء أُرسل كائن منتج كامل أو payload مجهز
+  if (rawPayload && typeof rawPayload === 'object') {
+    const id = rawPayload.productId || rawPayload.product || rawPayload._id || rawPayload.id;
+    const qty = Number(rawPayload.quantity || maybeQty || 1);
+
+    cleanPayload = {
+      productId: id,
+      quantity: qty,
+    };
+  } else if (typeof rawPayload === 'string') {
+    cleanPayload = {
+      productId: rawPayload,
+      quantity: Number(maybeQty || 1),
+    };
+  }
+
+  const response = await api.post('/carts/items', cleanPayload);
   return response.data;
 };
 export const addItemToCart = addToCartApi;
 export const addToCart = addToCartApi;
 
-// 3. تحديث الكمية
-export const updateCartQuantityApi = async (productId, quantity) => {
-  const response = await api.patch(`/carts/items/${productId}`, {
-    quantity,
-  });
+// 3. تعديل كمية منتج (PATCH /carts/items)
+export const updateCartItemApi = async (rawPayload, maybeQty) => {
+  let cleanPayload = {};
+
+  if (rawPayload && typeof rawPayload === 'object') {
+    const id = rawPayload.productId || rawPayload.product || rawPayload._id || rawPayload.id;
+    const qty = Number(rawPayload.quantity || maybeQty || 1);
+
+    cleanPayload = {
+      productId: id,
+      quantity: qty,
+    };
+  } else if (typeof rawPayload === 'string') {
+    cleanPayload = {
+      productId: rawPayload,
+      quantity: Number(maybeQty || 1),
+    };
+  }
+
+  const response = await api.patch('/carts/items', cleanPayload);
   return response.data;
 };
-export const updateCartItemApi = updateCartQuantityApi;
-export const updateQuantityApi = updateCartQuantityApi;
-export const updateItemQuantity = updateCartQuantityApi;
 
-// 4. حذف منتج من السلة
-export const removeFromCartApi = async (productId) => {
+
+// المسمى المطلوب في CartContext.jsx
+export const updateCartQuantityApi = updateCartItemApi;
+export const updateQuantityApi = updateCartItemApi;
+export const updateItemQuantity = updateCartItemApi;
+export const updateCartItem = updateCartItemApi;
+
+// 4. حذف منتج من السلة (DELETE /carts/items/:productId)
+export const removeCartItemApi = async (productId) => {
   const response = await api.delete(`/carts/items/${productId}`);
   return response.data;
 };
-export const removeCartItemApi = removeFromCartApi;
-export const removeItemFromCart = removeFromCartApi;
-export const removeFromCart = removeFromCartApi;
+export const removeFromCartApi = removeCartItemApi;
+export const removeItemFromCart = removeCartItemApi;
+export const removeFromCart = removeCartItemApi;
 
-// 5. تفريغ السلة
+// 5. تفريغ السلة بالكامل (DELETE /carts/clear)
 export const clearCartApi = async () => {
   const response = await api.delete('/carts/clear');
   return response.data;
@@ -58,7 +92,6 @@ export const removeCouponApi = async () => {
 };
 export const removeCoupon = removeCouponApi;
 
-// Export default شاطر يضم كل الأسماء البديلة القديمة كاملة
 export default {
   getCart,
   getCartApi,
@@ -71,12 +104,7 @@ export default {
   updateItemQuantity,
   removeCartItemApi,
   removeFromCartApi,
-  removeItemFromCart,
-  removeFromCart,
   clearCartApi,
-  clearCart,
   applyCouponApi,
-  applyCoupon,
   removeCouponApi,
-  removeCoupon,
 };

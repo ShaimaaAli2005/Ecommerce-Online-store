@@ -12,7 +12,12 @@ const Login = () => {
 
   const currentLang = i18n.language || 'en';
   const isRtl = currentLang === 'ar';
-  const destination = location.state?.from?.pathname || '/';
+  const destination = location.state?.from?.pathname || '/shop';
+
+  // حالة الثيم
+  const [isDark, setIsDark] = useState(() => {
+    return document.documentElement.classList.contains('dark') || localStorage.getItem('theme') === 'dark';
+  });
 
   const [formData, setFormData] = useState({
     email: localStorage.getItem('luma_remembered_email') || '',
@@ -24,7 +29,6 @@ const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [isDark, setIsDark] = useState(() => document.documentElement.classList.contains('dark'))
 
   const timerRef = useRef(null);
 
