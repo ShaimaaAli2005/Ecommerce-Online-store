@@ -1,176 +1,109 @@
-import { useEffect, useState } from "react";
-import { useTranslation } from "react-i18next";
-import { getMyOrders, cancelOrder } from "../../services/orderService";
+import React, { useEffect, useState } from 'react';
+import orderService from '../../services/orderService';
 
 const Orders = () => {
-  const { t } = useTranslation("orders");
-
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [error, setError] = useState('');
 
-  const fetchOrders = async () => {
+  const loadOrders = async () => {
     try {
       setLoading(true);
-      setError("");
+      setError('');
 
-      const data = await getMyOrders();
+      const response = await orderService.getMyOrders();
 
-      setOrders(
-        data.orders ||
-        data.data ||
-        data ||
-        []
-      );
-    } catch (error) {
-      console.error("Error fetching orders:", error);
-      setError(t("error"));
+      setOrders(response?.data?.orders || response?.data || []);
+    } catch (err) {
+      console.error('Error loading orders:', err);
+      setError('Failed to load your orders.');
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchOrders();
+    loadOrders();
   }, []);
 
-  const handleCancel = async (id) => {
+  const handleCancel = async (orderId) => {
     try {
-      await cancelOrder(id);
-      await fetchOrders();
-    } catch (error) {
-      console.error("Error cancelling order:", error);
-      alert(t("cancelError"));
+      await orderService.cancelOrder(orderId);
+      await loadOrders();
+    } catch (err) {
+      console.error('Error cancelling order:', err);
+      setError('Failed to cancel the order.');
     }
   };
 
   if (loading) {
     return (
-      <div className="min-h-[500px] bg-[#F7F5F0] py-16 text-center">
-        <p className="text-[#7B8190]">
-          {t("loading")}
-        </p>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="min-h-[500px] bg-[#F7F5F0] py-16 text-center">
-        <p className="text-[#C95C5C]">
-          {error}
-        </p>
+      <div className="flex justify-center items-center min-h-[400px]">
+        <p>Loading orders...</p>
       </div>
     );
   }
 
   return (
-    <section className="min-h-screen bg-[#F7F5F0] px-4 py-10">
-      <div className="mx-auto max-w-6xl">
+    <div className="container mx-auto px-4 py-8">
+      <h1 className="text-3xl font-bold mb-6">My Orders</h1>
 
-        <h1 className="mb-8 font-['Poppins'] text-3xl font-bold text-[#17233C]">
-          {t("title")}
-        </h1>
+      {error && (
+        <div className="mb-4 p-4 rounded-lg bg-red-100 text-red-600">
+          {error}
+        </div>
+      )}
 
-        {orders.length === 0 ? (
-          <div className="rounded-2xl bg-white p-10 text-center shadow-sm">
-            <p className="text-[#7B8190]">
-              {t("empty")}
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-5">
-            {orders.map((order) => (
-              <div
-                key={order._id}
-                className="rounded-2xl bg-white p-6 shadow-sm"
-              >
+      {orders.length === 0 ? (
+        <div className="text-center py-12">
+          <p className="text-gray-500">You don't have any orders yet.</p>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {orders.map((order) => (
+            <div
+              key={order._id}
+              className="border rounded-lg p-5 bg-white shadow-sm"
+            >
+              <div className="flex justify-between items-center mb-4">
+                <div>
+                  <h2 className="font-semibold">
+                    Order #{order._id}
+                  </h2>
 
-                <div className="mb-5 flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
-
-                  <div>
-                    <p className="text-sm text-[#7B8190]">
-                      {t("orderId")}
-                    </p>
-
-                    <p className="font-semibold text-[#17233C]">
-                      {order._id}
-                    </p>
-                  </div>
-
-                  <span className="rounded-full bg-[#F7F5F0] px-4 py-2 text-sm font-medium capitalize text-[#17233C]">
-                    {order.status}
-                  </span>
-
+                  <p className="text-sm text-gray-500">
+                    {order.createdAt
+                      ? new Date(order.createdAt).toLocaleDateString()
+                      : ''}
+                  </p>
                 </div>
 
-                <div className="space-y-3">
-
-                  {order.items?.map((item, index) => (
-                    <div
-                      key={item._id || index}
-                      className="flex items-center gap-4 border-b border-[#E5E7EB] pb-3"
-                    >
-
-                      <img
-                        src={item.image || "/placeholder-product.png"}
-                        alt={item.name}
-                        className="h-16 w-16 rounded-lg object-cover"
-                      />
-
-                      <div className="flex-1">
-
-                        <p className="font-semibold text-[#17233C]">
-                          {item.name}
-                        </p>
-
-                        <p className="text-sm text-[#7B8190]">
-                          {t("quantity")}: {item.quantity}
-                        </p>
-
-                      </div>
-
-                      <p className="font-semibold text-[#17233C]">
-                        {item.price} EGP
-                      </p>
-
-                    </div>
-                  ))}
-
-                </div>
-
-                <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-
-                  <div>
-                    <p className="text-sm text-[#7B8190]">
-                      {t("total")}
-                    </p>
-
-                    <p className="text-xl font-bold text-[#17233C]">
-                      {order.totalPrice} EGP
-                    </p>
-                  </div>
-
-                  {(order.status === "pending" ||
-                    order.status === "confirmed") && (
-                    <button
-                      type="button"
-                      onClick={() => handleCancel(order._id)}
-                      className="rounded-xl bg-[#C95C5C] px-5 py-2.5 font-semibold text-white hover:opacity-90"
-                    >
-                      {t("cancel")}
-                    </button>
-                  )}
-
-                </div>
-
+                <span className="px-3 py-1 rounded-full bg-gray-100 text-sm">
+                  {order.status || 'Pending'}
+                </span>
               </div>
-            ))}
-          </div>
-        )}
 
-      </div>
-    </section>
+              <div className="mb-4">
+                <p>
+                  <strong>Total:</strong>{' '}
+                  {order.totalPrice ?? order.total ?? 0}
+                </p>
+              </div>
+
+              {order.status !== 'cancelled' &&
+                order.status !== 'Canceled' && (
+                  <button
+                    onClick={() => handleCancel(order._id)}
+                    className="px-4 py-2 rounded-lg border border-red-500 text-red-500 hover:bg-red-50"
+                  >
+                    Cancel Order
+                  </button>
+                )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
   );
 };
 

@@ -9,24 +9,28 @@ import Shop from './pages/Shop/Shop';
 import ProductDetails from './pages/ProductDetails/ProductDetails';
 import Cart from './pages/Cart';
 import Checkout from './pages/Checkout';
+import Orders from './pages/Orders/Orders';
 import ProtectedRoute from './Components/ProtectedRoute';
 import MainLayout from './Components/MainLayout';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
-import { WishlistProvider } from './context/WishlistContext'; 
+import { WishlistProvider } from './context/WishlistContext';
 
 function ScrollToTop() {
   const { pathname } = useLocation();
+
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [pathname]);
+
   return null;
 }
 
 function App() {
   useEffect(() => {
     const theme = localStorage.getItem('theme');
+
     if (theme === 'dark') {
       document.documentElement.classList.add('dark');
     } else {
@@ -42,13 +46,12 @@ function App() {
 
           <Router>
             <ScrollToTop />
+
             <Routes>
-              {/* 1. مسارات المصادقة بعد نقلها لمجلد Auth */}
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
 
-              {/* 2. مسارات المتجر العامة بتخطيط MainLayout */}
               <Route element={<MainLayout />}>
                 <Route path="/" element={<Navigate to="/login" replace />} />
                 <Route path="/shop" element={<Shop />} />
@@ -56,15 +59,13 @@ function App() {
                 <Route path="/cart" element={<Cart />} />
                 <Route path="/products/:id" element={<ProductDetails />} />
 
-                {/* 3. المسارات المحمية (تتطلب تسجيل دخول) */}
                 <Route element={<ProtectedRoute />}>
                   <Route path="/profile" element={<Profile />} />
                   <Route path="/checkout" element={<Checkout />} />
-                  <Route path="/my-orders" element={<Navigate to="/profile" replace />} />
+                  <Route path="/my-orders" element={<Orders />} />
                 </Route>
               </Route>
 
-              {/* 4. مسار إعادة التوجيه الافتراضي لأي رابط غير موجود */}
               <Route path="*" element={<Navigate to="/shop" replace />} />
             </Routes>
           </Router>
