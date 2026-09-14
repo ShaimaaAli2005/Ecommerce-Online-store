@@ -17,24 +17,13 @@ export default function Wishlist() {
   const [quickViewProduct, setQuickViewProduct] = useState(null);
 
   const handleAddToCart = async (product) => {
-    const productId = product.id || product._id;
-    
+    const pId = product._id || product.id;
     if (addToCart) {
-      await addToCart(
-        {
-          id: productId,
-          name: product.name,
-          nameAr: product.nameAr,
-          price: product.price,
-          image: product.image || product.imageUrl,
-        },
-        1
-      );
+      await addToCart(product, 1);
     }
-
-    setAddedIds((prev) => [...prev, productId]);
+    setAddedIds((prev) => [...prev, pId]);
     setTimeout(() => {
-      setAddedIds((prev) => prev.filter((id) => id !== productId));
+      setAddedIds((prev) => prev.filter((id) => id !== pId));
     }, 1800);
   };
 
@@ -105,11 +94,11 @@ export default function Wishlist() {
         {/* الترويسة وأدوات التحكم */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-slate-200 dark:border-gray-800 pb-6">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-[#17233C] dark:text-white font-['Poppins']">
-              {t('pageTitle', 'My Wishlist')}
+            <h1 className="text-2xl sm:text-3xl font-bold font-['Poppins'] text-[#17233C] dark:text-white">
+              {t('title', 'My Wishlist')}
             </h1>
-            <p className="text-sm text-[#7B8190] dark:text-gray-400 mt-1">
-              {t('itemsCount', { count: wishlistItems.length, defaultValue: `${wishlistItems.length} items saved`})}
+            <p className="text-xs sm:text-sm text-slate-500 dark:text-gray-400 mt-1">
+              {t('itemCount', { count: wishlistItems.length, defaultValue: `${wishlistItems.length} saved items` })}
             </p>
           </div>
 
@@ -160,15 +149,15 @@ export default function Wishlist() {
             <div className="w-16 h-16 rounded-full bg-rose-50 dark:bg-rose-950/40 text-rose-500 flex items-center justify-center mx-auto text-2xl">
               <i className="fa-regular fa-heart"></i>
             </div>
-            <h2 className="text-xl font-bold text-[#17233C] dark:text-white mb-2 font-['Poppins']">
+            <h2 className="text-lg font-bold text-slate-900 dark:text-white font-['Poppins']">
               {t('emptyTitle', 'Your wishlist is empty')}
             </h2>
-            <p className="text-sm text-[#7B8190] dark:text-gray-400 mb-6 leading-relaxed">
-              {t('emptySubtitle', 'Explore our products and save your favorite items here.')}
+            <p className="text-xs text-slate-500 dark:text-gray-400 leading-relaxed">
+              {t('emptySub', 'Explore our shop catalog and save your favorite electronics and gadgets here.')}
             </p>
             <Link
               to="/shop"
-              className="inline-block bg-[#17233C] dark:bg-white hover:bg-[#E89A5B] dark:hover:bg-[#E89A5B] text-white dark:text-[#17233C] px-6 py-2.5 rounded-[10px] text-sm font-medium transition-colors shadow-sm"
+              className="inline-block px-6 py-3 bg-[#17233C] hover:bg-[#E89A5B] dark:bg-[#E89A5B] dark:hover:bg-[#d4894d] text-white text-xs font-semibold rounded-xl transition shadow-xs"
             >
               {t('exploreShop', 'Explore Shop')}
             </Link>
@@ -183,6 +172,7 @@ export default function Wishlist() {
               const discountPrice = Number(prod.discountPrice) || 0;
               const hasDiscount = discountPrice > 0 && discountPrice < price;
               const finalPrice = hasDiscount ? discountPrice : price;
+              const savedAmount = hasDiscount ? price - discountPrice : 0;
               const isAdded = addedIds.includes(pId);
               const inStock = prod.stock === undefined || prod.stock > 0;
 
@@ -207,14 +197,13 @@ export default function Wishlist() {
                   <button
                     type="button"
                     onClick={() => handleRemoveWithUndo(prod)}
-                    title={t('removeTooltip', 'Remove from wishlist')}
-                    className={`absolute top-3 ${isRtl ? 'left-3' : 'right-3'} z-10 w-8 h-8 rounded-full bg-white/90 dark:bg-gray-900/90 hover:bg-[#FEE2E2] dark:hover:bg-red-900 text-[#7B8190] dark:text-gray-300 hover:text-[#C95C5C] flex items-center justify-center transition-colors shadow-xs cursor-pointer border border-[#E5E7EB] dark:border-gray-700`}
+                    className="absolute top-3 end-3 z-10 w-8 h-8 rounded-full bg-white/90 dark:bg-gray-700/90 text-slate-400 hover:text-rose-500 shadow-xs flex items-center justify-center transition cursor-pointer"
+                    title={t('remove', 'Remove')}
                   >
                     <i className="fa-solid fa-xmark text-xs"></i>
                   </button>
 
                   <div>
-                    {/* صورة المنتج */}
                     <div className="aspect-square w-full rounded-xl overflow-hidden bg-slate-50 dark:bg-gray-900 mb-3 relative">
                       <Link to={`/products/${pId}`} className="block w-full h-full">
                         <img
@@ -223,6 +212,22 @@ export default function Wishlist() {
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                         />
                       </Link>
+
+                      {hasDiscount && (
+                        <span className="absolute top-2 start-2 px-2 py-0.5 rounded-md text-[10px] font-bold bg-[#E89A5B] text-white shadow-xs">
+                          {t('saveAmount', { amount: savedAmount, defaultValue: `Save ${savedAmount}` })} {t('currency', 'EGP')}
+                        </span>
+                      )}
+
+                      <span
+                        className={`absolute bottom-2 start-2 px-2 py-0.5 rounded-md text-[10px] font-semibold backdrop-blur-xs ${
+                          inStock
+                            ? 'bg-white/95 dark:bg-gray-900/95 text-emerald-600 dark:text-emerald-400'
+                            : 'bg-rose-100/95 dark:bg-rose-950/95 text-rose-600 dark:text-rose-400'
+                        }`}
+                      >
+                        {inStock ? t('inStock', 'In Stock') : t('outOfStock', 'Out of Stock')}
+                      </span>
 
                       <button
                         type="button"
@@ -233,7 +238,6 @@ export default function Wishlist() {
                       </button>
                     </div>
 
-                    {/* القسم والاسم */}
                     {displayCategory && (
                       <span className="text-[10px] font-bold uppercase tracking-wider text-[#E89A5B] block mb-1">
                         {displayCategory}
@@ -248,7 +252,6 @@ export default function Wishlist() {
                     </Link>
                   </div>
 
-                  {/* السعر وزر الإضافة للسلة */}
                   <div className="mt-4 pt-3 border-t border-slate-100 dark:border-gray-700/80">
                     <div className="flex items-baseline gap-2 mb-3">
                       <span className="text-base font-bold text-slate-900 dark:text-white font-mono">
@@ -281,7 +284,7 @@ export default function Wishlist() {
                       ) : (
                         <>
                           <i className="fa-solid fa-cart-shopping text-xs"></i>
-                          <span>{inStock ? t('addToCart', 'Add to Cart') : t('outOfStock', 'Out of Stock')}</span>
+                          <span>{t('addToCart', 'Add to Cart')}</span>
                         </>
                       )}
                     </button>
