@@ -64,7 +64,7 @@ function App() {
                 <Route element={<ProtectedRoute />}>
                   <Route path="/profile" element={<Profile />} />
                   <Route path="/checkout" element={<Checkout />} />
-                  <Route path="/my-orders" element={<Orders />} />
+                  <Route path="/my-orders" element={<Orders />} /> 
                 </Route>
               </Route>
 
