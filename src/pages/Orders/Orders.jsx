@@ -1,176 +1,275 @@
-import { useEffect, useState } from "react";
-import { useTranslation } from "react-i18next";
-import orderService from "../../services/orderService";
+import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import orderService from '../../services/orderService';
 
 const Orders = () => {
-  const { t } = useTranslation("orders");
+  const { t, i18n } = useTranslation('orders');
 
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [error, setError] = useState('');
 
-  const fetchOrders = async () => {
+  const isArabic = i18n.language === 'ar';
+
+  const handleLanguageChange = () => {
+    i18n.changeLanguage(isArabic ? 'en' : 'ar');
+  };
+
+  const loadOrders = async () => {
     try {
       setLoading(true);
-      setError("");
+      setError('');
 
-      const data = await orderService.getMyOrders();
+      const response = await orderService.getMyOrders();
 
-      setOrders(
-        data.orders ||
-        data.data ||
-        data ||
-        []
+      console.log('STORE ORDERS RESPONSE:', response);
+
+      const ordersData = Array.isArray(response?.orders)
+        ? response.orders
+        : [];
+
+      setOrders(ordersData);
+    } catch (err) {
+      console.error('Error loading orders:', err);
+
+      setError(
+        err.response?.data?.message ||
+          t('loadError', 'Failed to load your orders')
       );
-    } catch (error) {
-      console.error("Error fetching orders:", error);
-      setError(t("error"));
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchOrders();
+    loadOrders();
   }, []);
 
-  const handleCancel = async (id) => {
+  const handleCancel = async (orderId) => {
     try {
-      await orderService.cancelOrder(id);
-      await fetchOrders();
-    } catch (error) {
-      console.error("Error cancelling order:", error);
-      alert(t("cancelError"));
+      await orderService.cancelOrder(orderId);
+      await loadOrders();
+    } catch (err) {
+      console.error('Error cancelling order:', err);
+
+      setError(
+        t('cancelError', 'Failed to cancel the order.')
+      );
     }
   };
 
   if (loading) {
     return (
-      <div className="min-h-[500px] bg-[#F7F5F0] py-16 text-center">
-        <p className="text-[#7B8190]">
-          {t("loading")}
-        </p>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="min-h-[500px] bg-[#F7F5F0] py-16 text-center">
-        <p className="text-[#C95C5C]">
-          {error}
-        </p>
+      <div
+        dir={isArabic ? 'rtl' : 'ltr'}
+        className="flex justify-center items-center min-h-[400px]"
+      >
+        <p>{t('loading', 'Loading orders...')}</p>
       </div>
     );
   }
 
   return (
-    <section className="min-h-screen bg-[#F7F5F0] px-4 py-10">
-      <div className="mx-auto max-w-6xl">
-
-        <h1 className="mb-8 font-['Poppins'] text-3xl font-bold text-[#17233C]">
-          {t("title")}
+    <div
+      dir={isArabic ? 'rtl' : 'ltr'}
+      className="container mx-auto px-4 py-8"
+    >
+      {/* Header */}
+      <div className="flex justify-between items-center mb-6 gap-3 flex-wrap">
+        <h1 className="text-3xl font-bold">
+          {t('title', 'My Orders')}
         </h1>
 
-        {orders.length === 0 ? (
-          <div className="rounded-2xl bg-white p-10 text-center shadow-sm">
-            <p className="text-[#7B8190]">
-              {t("empty")}
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-5">
-            {orders.map((order) => (
-              <div
-                key={order._id}
-                className="rounded-2xl bg-white p-6 shadow-sm"
-              >
+        <div className="flex gap-3">
+          {/* Language Button */}
+          <button
+            onClick={handleLanguageChange}
+            className="px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-100 transition"
+          >
+            {isArabic ? 'English' : 'العربية'}
+          </button>
 
-                <div className="mb-5 flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
+          {/* Refresh Button */}
+          <button
+            onClick={loadOrders}
+            className="px-4 py-2 rounded-lg bg-gray-900 text-white hover:bg-gray-800 transition"
+          >
+            {t('refresh', 'Refresh')}
+          </button>
+        </div>
+      </div>
 
-                  <div>
-                    <p className="text-sm text-[#7B8190]">
-                      {t("orderId")}
-                    </p>
+      {/* Error */}
+      {error && (
+        <div className="mb-4 p-4 rounded-lg bg-red-100 text-red-600">
+          {error}
+        </div>
+      )}
 
-                    <p className="font-semibold text-[#17233C]">
-                      {order._id}
-                    </p>
+      {/* Empty Orders */}
+      {orders.length === 0 ? (
+        <div className="text-center py-12">
+          <p className="text-gray-500">
+            {t('empty', 'You have no orders yet.')}
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-6">
+          {orders.map((order) => (
+            <div
+              key={order._id}
+              className="border rounded-lg p-5 bg-white shadow-sm"
+            >
+              {/* Order Header */}
+              <div className="flex justify-between items-center mb-4 gap-4 flex-wrap">
+                <div>
+                  <h2 className="font-semibold">
+                    {t('orderNumber', 'Order ID')} #{order._id}
+                  </h2>
+
+                  <p className="text-sm text-gray-500">
+                    {order.createdAt
+                      ? new Date(
+                          order.createdAt
+                        ).toLocaleDateString(
+                          isArabic ? 'ar-EG' : 'en-US'
+                        )
+                      : ''}
+                  </p>
+                </div>
+
+                <span className="px-3 py-1 rounded-full bg-gray-100 text-sm">
+                  {order.status || t('pending', 'Pending')}
+                </span>
+              </div>
+
+              {/* Order Items */}
+              {Array.isArray(order.items) &&
+                order.items.length > 0 && (
+                  <div className="mb-5 space-y-3">
+                    {order.items.map((item, index) => {
+                      const image =
+                        item?.image ||
+                        item?.product?.images?.[0]?.url;
+
+                      return (
+                        <div
+                          key={item._id || index}
+                          className="flex items-center gap-4 border-b pb-3"
+                        >
+                          {/* Product Image */}
+                          {image && (
+                            <img
+                              src={image}
+                              alt={
+                                item.name ||
+                                item.product?.name ||
+                                t('product', 'Product')
+                              }
+                              className="w-16 h-16 object-cover rounded-lg"
+                            />
+                          )}
+
+                          {/* Product Info */}
+                          <div className="flex-1">
+                            <p className="font-medium">
+                              {item.name ||
+                                item.product?.name ||
+                                t('product', 'Product')}
+                            </p>
+
+                            <p className="text-sm text-gray-500">
+                              {t('quantity', 'Quantity')}:{' '}
+                              {item.quantity}
+                            </p>
+                          </div>
+
+                          {/* Product Price */}
+                          <p className="font-medium">
+                            EGP{' '}
+                            {Number(
+                              item.price || 0
+                            ).toFixed(2)}
+                          </p>
+                        </div>
+                      );
+                    })}
                   </div>
+                )}
 
-                  <span className="rounded-full bg-[#F7F5F0] px-4 py-2 text-sm font-medium capitalize text-[#17233C]">
-                    {order.status}
+              {/* Order Summary */}
+              <div className="border-t pt-4 space-y-2">
+                <div className="flex justify-between">
+                  <span>
+                    {t('subtotal', 'Subtotal')}:
                   </span>
 
+                  <span>
+                    EGP{' '}
+                    {Number(
+                      order.subtotal || 0
+                    ).toFixed(2)}
+                  </span>
                 </div>
 
-                <div className="space-y-3">
+                <div className="flex justify-between">
+                  <span>
+                    {t('shipping', 'Shipping')}:
+                  </span>
 
-                  {order.items?.map((item, index) => (
-                    <div
-                      key={item._id || index}
-                      className="flex items-center gap-4 border-b border-[#E5E7EB] pb-3"
-                    >
-
-                      <img
-                        src={item.image || "/placeholder-product.png"}
-                        alt={item.name}
-                        className="h-16 w-16 rounded-lg object-cover"
-                      />
-
-                      <div className="flex-1">
-
-                        <p className="font-semibold text-[#17233C]">
-                          {item.name}
-                        </p>
-
-                        <p className="text-sm text-[#7B8190]">
-                          {t("quantity")}: {item.quantity}
-                        </p>
-
-                      </div>
-
-                      <p className="font-semibold text-[#17233C]">
-                        {item.price} EGP
-                      </p>
-
-                    </div>
-                  ))}
-
+                  <span>
+                    EGP{' '}
+                    {Number(
+                      order.shippingFee || 0
+                    ).toFixed(2)}
+                  </span>
                 </div>
 
-                <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex justify-between">
+                  <span>
+                    {t('tax', 'Tax')}:
+                  </span>
 
-                  <div>
-                    <p className="text-sm text-[#7B8190]">
-                      {t("total")}
-                    </p>
-
-                    <p className="text-xl font-bold text-[#17233C]">
-                      {order.totalPrice} EGP
-                    </p>
-                  </div>
-
-                  {(order.status === "pending" ||
-                    order.status === "confirmed") && (
-                    <button
-                      type="button"
-                      onClick={() => handleCancel(order._id)}
-                      className="rounded-xl bg-[#C95C5C] px-5 py-2.5 font-semibold text-white hover:opacity-90"
-                    >
-                      {t("cancel")}
-                    </button>
-                  )}
-
+                  <span>
+                    EGP{' '}
+                    {Number(
+                      order.tax || 0
+                    ).toFixed(2)}
+                  </span>
                 </div>
 
+                <div className="flex justify-between font-bold text-lg border-t pt-2">
+                  <span>
+                    {t('total', 'Total')}:
+                  </span>
+
+                  <span>
+                    EGP{' '}
+                    {Number(
+                      order.totalPrice || 0
+                    ).toFixed(2)}
+                  </span>
+                </div>
               </div>
-            ))}
-          </div>
-        )}
 
-      </div>
-    </section>
+              {/* Cancel Order */}
+              {order.status === 'pending' && (
+                <div className="mt-4 flex justify-end">
+                  <button
+                    onClick={() =>
+                      handleCancel(order._id)
+                    }
+                    className="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition"
+                  >
+                    {t('cancel', 'Cancel')}
+                  </button>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
   );
 };
 

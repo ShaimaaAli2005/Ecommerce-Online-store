@@ -1,35 +1,40 @@
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 
-// استيراد ملفات الترجمة الخاصة بالمصادقة
+// Authentication translations
 import enAuth from './locales/en/auth.json';
 import arAuth from './locales/ar/auth.json';
 
-// ملفات نصوص قائمة الرغبات
+// Wishlist translations
 import enWishlist from './locales/en/wishlist.json';
 import arWishlist from './locales/ar/wishlist.json';
 
-// استيراد ملفات المتجر الجديدة
+// Shop translations
 import enShop from './locales/en/shop.json';
 import arShop from './locales/ar/shop.json';
 
-// استيراد ملفات البروفايل الجديدة
+// Profile translations
 import enProfile from './locales/en/profile.json';
 import arProfile from './locales/ar/profile.json';
 
-// ملفات النصوص المشتركة (الناف بار...إلخ)
+// Common translations
 import enCommon from './locales/en/common.json';
 import arCommon from './locales/ar/common.json';
 
-// ملفات صفحة الهوم
+// Home translations
 import enHome from './locales/en/home.json';
 import arHome from './locales/ar/home.json';
 
-// ملفات الفوتر
+// Footer translations
 import enFooter from './locales/en/footer.json';
 import arFooter from './locales/ar/footer.json';
 
-const savedLanguage = localStorage.getItem('luma_lang') || 'en';
+// Orders translations
+import enOrders from './locales/en/orders.json';
+import arOrders from './locales/ar/orders.json';
+
+const savedLanguage =
+  localStorage.getItem('luma_lang') || 'en';
 
 i18n
   .use(initReactI18next)
@@ -43,7 +48,9 @@ i18n
         common: enCommon,
         home: enHome,
         footer: enFooter,
+        orders: enOrders,
       },
+
       ar: {
         auth: arAuth,
         wishlist: arWishlist,
@@ -52,26 +59,45 @@ i18n
         common: arCommon,
         home: arHome,
         footer: arFooter,
-        // cart: arCart,
+        orders: arOrders,
       },
     },
+
     lng: savedLanguage,
+
     fallbackLng: 'en',
-    ns: ['auth', 'wishlist', 'shop', 'profile', 'common', 'home', 'footer'],
+
+    ns: [
+      'auth',
+      'wishlist',
+      'shop',
+      'profile',
+      'common',
+      'home',
+      'footer',
+      'orders',
+    ],
+
     defaultNS: 'auth',
+
     interpolation: {
       escapeValue: false,
     },
   });
 
-// ضبط اتجاه المستند ولغته فور بدء التطبيق
-document.documentElement.dir = savedLanguage === 'ar' ? 'rtl' : 'ltr';
+// Set page direction and language on startup
+document.documentElement.dir =
+  savedLanguage === 'ar' ? 'rtl' : 'ltr';
+
 document.documentElement.lang = savedLanguage;
 
-// الاستماع لأي تغيير في اللغة لتحديث الـ dir والـ lang وتخزين القيمة
+// Update direction and save language when it changes
 i18n.on('languageChanged', (lng) => {
-  document.documentElement.dir = lng === 'ar' ? 'rtl' : 'ltr';
+  document.documentElement.dir =
+    lng === 'ar' ? 'rtl' : 'ltr';
+
   document.documentElement.lang = lng;
+
   localStorage.setItem('luma_lang', lng);
 });
 
