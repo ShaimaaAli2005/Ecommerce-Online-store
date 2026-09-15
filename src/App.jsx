@@ -13,7 +13,6 @@ import Checkout from './pages/Checkout';
 import Orders from './pages/Orders/Orders';
 import ProtectedRoute from './Components/ProtectedRoute';
 import MainLayout from './Components/MainLayout';
-import Orders from './pages/Orders/Orders';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
