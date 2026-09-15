@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import orderService from '../../services/orderService';
 
+const HIDDEN_ORDERS_KEY = 'hidden_order_ids';
+
 const Orders = () => {
   const { t, i18n } = useTranslation('orders');
 
@@ -24,8 +26,14 @@ const Orders = () => {
 
       console.log('STORE ORDERS RESPONSE:', response);
 
+      const hiddenOrderIds = JSON.parse(
+        localStorage.getItem(HIDDEN_ORDERS_KEY) || '[]'
+      );
+
       const ordersData = Array.isArray(response?.orders)
-        ? response.orders
+        ? response.orders.filter(
+            (order) => !hiddenOrderIds.includes(order._id)
+          )
         : [];
 
       setOrders(ordersData);
@@ -44,6 +52,25 @@ const Orders = () => {
   useEffect(() => {
     loadOrders();
   }, []);
+
+  const handleClearOrders = () => {
+    const currentOrderIds = orders.map((order) => order._id);
+
+    const existingHiddenIds = JSON.parse(
+      localStorage.getItem(HIDDEN_ORDERS_KEY) || '[]'
+    );
+
+    const updatedHiddenIds = [
+      ...new Set([...existingHiddenIds, ...currentOrderIds]),
+    ];
+
+    localStorage.setItem(
+      HIDDEN_ORDERS_KEY,
+      JSON.stringify(updatedHiddenIds)
+    );
+
+    setOrders([]);
+  };
 
   const handleCancel = async (orderId) => {
     try {
@@ -96,6 +123,16 @@ const Orders = () => {
           >
             {t('refresh', 'Refresh')}
           </button>
+
+          {/* Clear Orders Button */}
+          {orders.length > 0 && (
+            <button
+              onClick={handleClearOrders}
+              className="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition"
+            >
+              {t('clearOrders', 'Clear Orders')}
+            </button>
+          )}
         </div>
       </div>
 
@@ -157,7 +194,6 @@ const Orders = () => {
                           key={item._id || index}
                           className="flex items-center gap-4 border-b pb-3"
                         >
-                          {/* Product Image */}
                           {image && (
                             <img
                               src={image}
@@ -170,7 +206,6 @@ const Orders = () => {
                             />
                           )}
 
-                          {/* Product Info */}
                           <div className="flex-1">
                             <p className="font-medium">
                               {item.name ||
@@ -184,7 +219,6 @@ const Orders = () => {
                             </p>
                           </div>
 
-                          {/* Product Price */}
                           <p className="font-medium">
                             EGP{' '}
                             {Number(
@@ -274,3 +308,4 @@ const Orders = () => {
 };
 
 export default Orders;
+
