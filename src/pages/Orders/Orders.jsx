@@ -9,6 +9,8 @@ const Orders = () => {
 
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [cancellingId, setCancellingId] = useState(null);
   const [error, setError] = useState('');
 
   const isArabic = i18n.language === 'ar';
@@ -17,18 +19,32 @@ const Orders = () => {
     i18n.changeLanguage(isArabic ? 'en' : 'ar');
   };
 
-  const loadOrders = async () => {
+  const getHiddenOrderIds = () => {
     try {
-      setLoading(true);
+      return JSON.parse(
+        localStorage.getItem(HIDDEN_ORDERS_KEY) || '[]'
+      );
+    } catch (error) {
+      console.error('Error reading hidden orders:', error);
+      return [];
+    }
+  };
+
+  const loadOrders = async (isRefresh = false) => {
+    try {
+      if (isRefresh) {
+        setRefreshing(true);
+      } else {
+        setLoading(true);
+      }
+
       setError('');
 
       const response = await orderService.getMyOrders();
 
       console.log('STORE ORDERS RESPONSE:', response);
 
-      const hiddenOrderIds = JSON.parse(
-        localStorage.getItem(HIDDEN_ORDERS_KEY) || '[]'
-      );
+      const hiddenOrderIds = getHiddenOrderIds();
 
       const ordersData = Array.isArray(response?.orders)
         ? response.orders.filter(
@@ -46,6 +62,7 @@ const Orders = () => {
       );
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   };
 
@@ -56,9 +73,7 @@ const Orders = () => {
   const handleClearOrders = () => {
     const currentOrderIds = orders.map((order) => order._id);
 
-    const existingHiddenIds = JSON.parse(
-      localStorage.getItem(HIDDEN_ORDERS_KEY) || '[]'
-    );
+    const existingHiddenIds = getHiddenOrderIds();
 
     const updatedHiddenIds = [
       ...new Set([...existingHiddenIds, ...currentOrderIds]),
@@ -70,19 +85,38 @@ const Orders = () => {
     );
 
     setOrders([]);
+    setError('');
   };
 
   const handleCancel = async (orderId) => {
     try {
+      setCancellingId(orderId);
+      setError('');
+
       await orderService.cancelOrder(orderId);
-      await loadOrders();
+
+      // Update the cancelled order locally
+      setOrders((currentOrders) =>
+        currentOrders.map((order) =>
+          order._id === orderId
+            ? { ...order, status: 'cancelled' }
+            : order
+        )
+      );
     } catch (err) {
       console.error('Error cancelling order:', err);
 
       setError(
-        t('cancelError', 'Failed to cancel the order.')
+        err.response?.data?.message ||
+          t('cancelError', 'Failed to cancel the order.')
       );
+    } finally {
+      setCancellingId(null);
     }
+  };
+
+  const formatPrice = (value) => {
+    return Number(value || 0).toFixed(2);
   };
 
   if (loading) {
@@ -91,7 +125,13 @@ const Orders = () => {
         dir={isArabic ? 'rtl' : 'ltr'}
         className="flex justify-center items-center min-h-[400px]"
       >
-        <p>{t('loading', 'Loading orders...')}</p>
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-8 h-8 border-4 border-gray-200 border-t-gray-900 rounded-full animate-spin" />
+
+          <p className="text-gray-500">
+            {t('loading', 'Loading orders...')}
+          </p>
+        </div>
       </div>
     );
   }
@@ -107,7 +147,7 @@ const Orders = () => {
           {t('title', 'My Orders')}
         </h1>
 
-        <div className="flex gap-3">
+        <div className="flex gap-3 flex-wrap">
           {/* Language Button */}
           <button
             onClick={handleLanguageChange}
@@ -118,10 +158,13 @@ const Orders = () => {
 
           {/* Refresh Button */}
           <button
-            onClick={loadOrders}
-            className="px-4 py-2 rounded-lg bg-gray-900 text-white hover:bg-gray-800 transition"
+            onClick={() => loadOrders(true)}
+            disabled={refreshing}
+            className="px-4 py-2 rounded-lg bg-gray-900 text-white hover:bg-gray-800 transition disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {t('refresh', 'Refresh')}
+            {refreshing
+              ? t('refreshing', 'Refreshing...')
+              : t('refresh', 'Refresh')}
           </button>
 
           {/* Clear Orders Button */}
@@ -220,10 +263,7 @@ const Orders = () => {
                           </div>
 
                           <p className="font-medium">
-                            EGP{' '}
-                            {Number(
-                              item.price || 0
-                            ).toFixed(2)}
+                            EGP {formatPrice(item.price)}
                           </p>
                         </div>
                       );
@@ -239,10 +279,7 @@ const Orders = () => {
                   </span>
 
                   <span>
-                    EGP{' '}
-                    {Number(
-                      order.subtotal || 0
-                    ).toFixed(2)}
+                    EGP {formatPrice(order.subtotal)}
                   </span>
                 </div>
 
@@ -252,10 +289,7 @@ const Orders = () => {
                   </span>
 
                   <span>
-                    EGP{' '}
-                    {Number(
-                      order.shippingFee || 0
-                    ).toFixed(2)}
+                    EGP {formatPrice(order.shippingFee)}
                   </span>
                 </div>
 
@@ -265,10 +299,7 @@ const Orders = () => {
                   </span>
 
                   <span>
-                    EGP{' '}
-                    {Number(
-                      order.tax || 0
-                    ).toFixed(2)}
+                    EGP {formatPrice(order.tax)}
                   </span>
                 </div>
 
@@ -278,10 +309,7 @@ const Orders = () => {
                   </span>
 
                   <span>
-                    EGP{' '}
-                    {Number(
-                      order.totalPrice || 0
-                    ).toFixed(2)}
+                    EGP {formatPrice(order.totalPrice)}
                   </span>
                 </div>
               </div>
@@ -290,12 +318,13 @@ const Orders = () => {
               {order.status === 'pending' && (
                 <div className="mt-4 flex justify-end">
                   <button
-                    onClick={() =>
-                      handleCancel(order._id)
-                    }
-                    className="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition"
+                    onClick={() => handleCancel(order._id)}
+                    disabled={cancellingId === order._id}
+                    className="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {t('cancel', 'Cancel')}
+                    {cancellingId === order._id
+                      ? t('cancelling', 'Cancelling...')
+                      : t('cancel', 'Cancel')}
                   </button>
                 </div>
               )}
@@ -308,4 +337,3 @@ const Orders = () => {
 };
 
 export default Orders;
-

@@ -160,7 +160,8 @@ const Checkout = () => {
           : 'Order placed successfully!'
       );
     } catch (error) {
-      console.error('CREATE ORDER ERROR:', error);
+     console.error('CREATE ORDER ERROR:', error);
+console.error('SERVER ERROR:', error.response?.data);
 
       const errorMessage =
         error.response?.data?.message ||
