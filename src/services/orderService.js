@@ -8,10 +8,10 @@ const orderService = {
   },
 
   // Get logged-in user's orders
-  getAllOrders: async () => {
-    const response = await api.get('/orders/my');
-    return response.data;
-  },
+ getMyOrders: async () => {
+  const response = await api.get('/orders/my');
+  return response.data;
+},
 
   // Get order by ID
   getOrderById: async (id) => {
